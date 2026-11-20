@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HeartKidz</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+/* VOICE everyday, tender: a calm bedtime ritual for kids, a clear pattern desk for parents
+   IDEA the inner weather report: sun, still air, rain, thunder; each day becomes one coloured heart
+   PICTURE night-sky band with two hearts; per child a strip of weather-hearts; parent: mood line + weekday grid
+   COLOUR warm paper, deep indigo night band, rose heart; weather zones yellow/green/blue/red; kids violet + teal
+   TYPE Baloo 2 for titles, Nunito for text
+   LAYOUT one column app up to 980px; parent panels two columns above 760px, stacked on phones */
+:root{color-scheme:light dark;
+--bg:light-dark(#fffaf5,#17131f);--paper:light-dark(#ffffff,#221c2d);--soft:light-dark(#f6efe9,#2b2438);
+--ink:light-dark(#2b2238,#f4eefa);--muted:light-dark(#6d6479,#b6acc3);--line:light-dark(#ece2da,#3a3147);
+--heart:light-dark(#e2475b,#ff6b7d);--night:light-dark(#2e2a6e,#100d22);
+--c1:light-dark(#7a4fc9,#9576e0);--c2:light-dark(#00948c,#1fa5a8);
+--zY:light-dark(#d99a00,#c8941a);--zG:light-dark(#2f9e6a,#36a872);--zB:light-dark(#3b78d0,#4f86dc);--zR:light-dark(#d9473f,#e05c52);--zN:light-dark(#a39bae,#7d7589)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Nunito,ui-rounded,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Baloo 2",Nunito,sans-serif;line-height:1.08;letter-spacing:-.01em;margin:0;text-wrap:balance}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--c1);outline-offset:2px}
+.app{max-width:980px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right)) 120px max(16px,env(safe-area-inset-left))}
+.top{display:flex;align-items:center;justify-content:space-between;padding:calc(12px + env(safe-area-inset-top)) 0 10px}
+.brand{display:flex;align-items:center;gap:8px;font:800 1.35rem "Baloo 2",sans-serif}
+.brand svg{width:34px;height:34px}
+.today{color:var(--muted);font-size:.9rem;font-weight:700}
+.screen{display:none}.screen.on{display:block}
+.sky{background:var(--night);color:#fff;border-radius:28px;position:relative;overflow:hidden;padding:28px 24px 30px;min-height:210px;display:grid;align-content:end}
+.sky svg.scene{position:absolute;inset:0;width:100%;height:100%}
+.sky h1{font-size:clamp(2rem,7vw,3.1rem);position:relative;max-width:12ch}
+.sky p{position:relative;margin:8px 0 0;max-width:34ch;color:#e6e2ff}
+.h2{font-size:1.45rem;margin:26px 0 12px}
+.kids{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.kid{border:0;text-align:left;background:var(--paper);border-radius:24px;padding:18px;box-shadow:0 1px 0 var(--line),0 10px 28px color-mix(in oklab,var(--ink) 8%,transparent);display:grid;gap:10px}
+.kid .av{width:62px;height:62px;border-radius:20px;display:grid;place-items:center;font-size:34px;background:color-mix(in oklab,var(--kc) 16%,var(--paper))}
+.kid strong{font:800 1.5rem "Baloo 2",sans-serif}
+.kid .st{color:var(--muted);font-size:.92rem;font-weight:700}
+.kid .st b{color:var(--kc)}
+.strip{display:flex;gap:3px}.strip svg{width:100%;max-width:26px;aspect-ratio:1}
+.card{background:var(--paper);border-radius:22px;padding:18px;margin:14px 0;box-shadow:0 1px 0 var(--line)}
+.card h3{font-size:1.2rem;margin-bottom:6px}
+.muted{color:var(--muted)}.small{font-size:.88rem}
+.btn{border:0;border-radius:16px;min-height:48px;padding:12px 18px;font-weight:800;background:var(--heart);color:#fff}
+.btn:hover{filter:brightness(.95)}
+.btn.alt{background:var(--soft);color:var(--ink)}
+.btn.line{background:transparent;border:1.5px solid var(--line);color:var(--ink)}
+.btn.danger{background:color-mix(in oklab,var(--zR) 14%,var(--paper));color:var(--zR)}
+.btn.sm{min-height:40px;padding:8px 13px;font-size:.9rem}
+.btn:disabled{opacity:.4;cursor:default}
+.full{width:100%}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.sp{justify-content:space-between}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:color-mix(in oklab,var(--paper) 92%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom))}
+.nav div{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.nav button{border:0;background:none;border-radius:14px;min-height:52px;font-weight:800;font-size:.85rem;color:var(--muted);display:grid;justify-items:center;gap:2px}
+.nav button svg{width:24px;height:24px}
+.nav button.on{background:var(--soft);color:var(--ink)}
+body.flow .nav{display:none}
+.bar{height:8px;border-radius:8px;background:var(--soft);overflow:hidden;margin:14px 0 22px}.bar i{display:block;height:100%;background:var(--heart);border-radius:8px;transition:width .25s}
+.kicker{font-weight:800;color:var(--heart);font-size:.9rem}
+.q{font-size:clamp(1.7rem,5.5vw,2.3rem);margin:6px 0 6px}
+.hint{color:var(--muted);margin:0 0 16px;max-width:52ch}
+.zone{margin:14px 0 6px;display:flex;align-items:center;gap:8px;font-weight:800}
+.zone i{width:14px;height:14px;border-radius:50%;background:var(--z)}
+.zone span{color:var(--muted);font-weight:600;font-size:.88rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:9px}
+.opt{border:2px solid var(--line);background:var(--paper);border-radius:18px;min-height:86px;padding:10px 6px;display:grid;justify-items:center;align-content:center;gap:2px;font-weight:800;font-size:.92rem;text-align:center}
+.opt .e{font-size:2rem;line-height:1.1}
+.opt.on{border-color:var(--z,var(--heart));background:color-mix(in oklab,var(--z,var(--heart)) 14%,var(--paper))}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1.5px solid var(--line);background:var(--paper);border-radius:99px;min-height:44px;padding:8px 14px;font-weight:800}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+textarea,input[type=text],input[type=password],input[type=number],select{width:100%;font-size:16px;border:1.5px solid var(--line);border-radius:16px;padding:13px;background:var(--paper)}
+textarea{min-height:120px;resize:vertical}
+.tools{display:flex;gap:8px;margin:8px 0}
+.say{border:1.5px solid var(--line);background:var(--paper);border-radius:99px;min-height:40px;padding:6px 12px;font-weight:800;font-size:.88rem;display:inline-flex;gap:6px;align-items:center}
+.say svg{width:18px;height:18px}
+.say.live{background:var(--heart);color:#fff;border-color:var(--heart)}
+.acts{display:flex;gap:10px;margin-top:24px}.acts .btn{flex:1}
+.note{background:color-mix(in oklab,var(--zY) 14%,var(--paper));border-radius:16px;padding:12px 14px;font-size:.92rem}
+.field{display:grid;gap:6px;margin:12px 0}.field label{font-weight:800;font-size:.92rem}
+.done{text-align:center;padding:26px 16px}
+.breath{width:180px;height:180px;margin:22px auto;border-radius:50%;background:color-mix(in oklab,var(--zG) 30%,var(--paper));display:grid;place-items:center;font-weight:800;font-size:1.1rem;transform:scale(.7)}
+.breath.go{animation:br 8s ease-in-out 3}
+@keyframes br{0%,100%{transform:scale(.7)}50%{transform:scale(1.05)}}
+@media(prefers-reduced-motion:reduce){.breath.go{animation:none;transform:none}}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+.cal .h{text-align:center;font-weight:800;color:var(--muted);font-size:.8rem}
+.cal button{border:0;background:none;padding:2px;display:grid;justify-items:center;font-size:.78rem;color:var(--muted);font-weight:700}
+.cal svg{width:100%;max-width:40px;aspect-ratio:1}
+.cal .tod{color:var(--ink);text-decoration:underline}
+.ans{margin:10px 0}.ans b{display:block;font-size:.88rem;color:var(--muted)}
+.ans p{margin:2px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.ctrl{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:8px 0 14px}
+.find{font-size:clamp(1.6rem,4.6vw,2.4rem);margin:6px 0 4px}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kpi{background:var(--soft);border-radius:16px;padding:12px}
+.kpi strong{display:block;font:800 1.55rem "Baloo 2",sans-serif;white-space:nowrap}
+.kpi small{color:var(--muted);font-weight:700}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.9rem;font-weight:700}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;background:var(--k);margin-right:5px;vertical-align:-1px}
+.fig{position:relative;height:280px}.fig>svg{position:absolute;inset:0;width:100%;height:100%;touch-action:pan-y}
+.ax{fill:var(--muted);font-size:13px;font-weight:700}
+.tip{position:absolute;display:none;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:12px;padding:8px 10px;font-size:.85rem;width:170px;z-index:2}
+.wk{display:grid;grid-template-columns:5.5em repeat(7,minmax(0,1fr));gap:4px;align-items:center}
+.wk .c{border-radius:10px;min-height:48px;display:grid;place-items:center;font-weight:800;font-size:.85rem;line-height:1.1;text-align:center}
+.wk .hd{text-align:center;font-weight:800;color:var(--muted);font-size:.85rem}
+.wk .nm{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.panels{display:grid;gap:14px}
+@media(min-width:760px){.panels.two{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.panel{background:var(--paper);border-radius:22px;padding:18px;box-shadow:0 1px 0 var(--line);border-top:5px solid var(--kc)}
+.panel h3{font-size:1.4rem}
+.sub{font-weight:800;margin:18px 0 8px}
+.stack{display:flex;gap:2px;height:26px;border-radius:8px;overflow:hidden}
+.stack i{display:block;height:100%;background:var(--z)}
+.zl{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.85rem;margin-top:6px}
+.zl span i{display:inline-block;width:10px;height:10px;border-radius:3px;background:var(--z);margin-right:4px}
+.ins{list-style:none;padding:0;margin:0;display:grid;gap:8px}
+.ins li{padding:10px 12px 10px 14px;border-radius:14px;background:var(--soft);border-left:4px solid var(--t);font-size:.95rem}
+.hr{display:grid;grid-template-columns:minmax(0,8.5em) minmax(0,1fr) 3em;gap:8px;align-items:center;margin:7px 0;font-size:.9rem}
+.hr .tr{height:10px;background:var(--soft);border-radius:6px;overflow:hidden}
+.hr .tr i{display:block;height:100%;background:var(--kc);border-radius:0 6px 6px 0}
+.hr b{text-align:right;font-variant-numeric:tabular-nums}
+.db{position:relative;height:22px}
+.db:before{content:"";position:absolute;left:50%;top:2px;bottom:2px;border-left:1px dashed var(--line)}
+.db .ln{position:absolute;top:10px;height:2px;background:var(--muted);opacity:.5}
+.db .dt{position:absolute;top:4px;width:14px;height:14px;margin-left:-7px;border-radius:50%;border:2px solid var(--paper)}
+details.day{background:var(--paper);border-radius:18px;margin:10px 0;box-shadow:0 1px 0 var(--line)}
+details.day summary{list-style:none;cursor:pointer;padding:14px;display:flex;gap:10px;align-items:center}
+details.day summary::-webkit-details-marker{display:none}
+details.day summary svg{width:30px;height:30px;flex:none}
+details.day .in{padding:0 14px 14px}
+.demo{position:sticky;top:0;z-index:15;background:var(--zY);color:#2b2238;font-weight:800;border-radius:0 0 14px 14px;padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.demo button{border:0;background:#2b2238;color:#fff;border-radius:10px;padding:6px 10px;font-weight:800;min-height:36px}
+.ov{position:fixed;inset:0;background:rgba(20,14,30,.5);display:grid;place-items:center;padding:16px;z-index:50}
+.ov .box{background:var(--paper);border-radius:22px;padding:20px;width:min(420px,100%);max-height:90vh;overflow:auto}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-weight:700;z-index:60;max-width:90vw}
+.hide{display:none!important}
+.foot{text-align:center;color:var(--muted);font-size:.85rem;padding:20px 0}
+@media(max-width:600px){.nmx{display:none}.sky{min-height:270px}.kids{gap:10px}.kid{padding:14px}.kid strong{font-size:1.25rem}.wk{grid-template-columns:3.6em repeat(7,minmax(0,1fr))}.wk .c{font-size:.75rem;min-height:42px}.hr{grid-template-columns:minmax(0,6.5em) minmax(0,1fr) 2.6em}}
+</style>
+</head>
+<body>
+<div id="demoBar" class="demo hide"><span>Je bekijkt voorbeelddata</span><button data-act="demoOff">Stoppen</button></div>
+<div class="app">
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--heart)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z"/><path d="M8.3 10.6q3.7 3.6 7.4 0" stroke="#fff" stroke-width="1.7" fill="none" stroke-linecap="round"/></svg>HeartKidz</div>
+  <div class="today" id="today"></div>
+</header>
+<main>
+<section id="home" class="screen on">
+  <div class="sky">
+    <svg class="scene" viewBox="0 0 400 220" preserveAspectRatio="xMidYMax slice" aria-hidden="true" id="sceneSvg"></svg>
+    <h1>Hoe was jouw dag?</h1>
+    <p>Even stilstaan bij vandaag. Er is geen goed of fout. Alle gevoelens mogen er zijn.</p>
+  </div>
+  <h2 class="h2">Wie gaat er uitchecken?</h2>
+  <div class="kids" id="kids"></div>
+  <div class="card" id="homeDemo"></div>
+</section>
+
+<section id="flow" class="screen">
+  <div class="row sp"><button class="btn line sm" data-act="stop">Stoppen</button><b id="flowKid"></b></div>
+  <div class="bar"><i id="prog"></i></div>
+  <div id="stepBox"></div>
+  <div class="acts" id="stepActs"></div>
+</section>
+
+<section id="done" class="screen"><div class="card done" id="doneBox"></div></section>
+
+<section id="mine" class="screen"><div id="mineBox"></div></section>
+
+<section id="parent" class="screen"><div id="parentBox"></div></section>
+</main>
+<div class="foot">HeartKidz · Alle gevoelens mogen er zijn</div>
+</div>
+<nav class="nav"><div>
+  <button data-act="go" data-s="home" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Start</button>
+  <button data-act="go" data-s="mine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Mijn dagen</button>
+  <button data-act="go" data-s="parent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Ouders</button>
+</div></nav>
+<input type="file" id="importFile" accept=".json,application/json" class="hide">
+<div id="ov"></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const HEART='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54z';
+const heart=(z,title)=>`<svg viewBox="0 0 24 24" role="img" aria-label="${esc(title||'')}">${z?`<path d="${HEART}" fill="var(--z${z})"/>`:`<path d="${HEART}" fill="none" stroke="var(--line)" stroke-width="1.6"/>`}</svg>`;
+
+/* ---------- content ---------- */
+const ZONES={Y:{n:'Zonnig',d:'fijn en vol energie'},G:{n:'Windstil',d:'fijn en rustig'},B:{n:'Regen',d:'niet fijn, weinig energie'},R:{n:'Onweer',d:'niet fijn, veel energie'},N:{n:'Bewolkt',d:'gewoon of weet ik niet'}};
+const EMO=[['Superblij','🥳','Y',2,1],['Blij','😄','Y',2,1],['Trots','😊','Y',1.5,1],['Stoer','😎','Y',1.5,0],['Enthousiast','🤩','Y',1.5,0],
+['Gelukkig','🥰','G',2,1],['Rustig','😌','G',1,1],['Dankbaar','🤗','G',1.5,0],['Veilig','☺️','G',1.5,0],
+['Moe','😴','B',-.5,1],['Verdrietig','😢','B',-2,1],['Verveeld','😒','B',-1,0],['Verlegen','😳','B',-.5,0],['Eenzaam','🥺','B',-2,0],
+['Boos','😡','R',-2,1],['Bang','😟','R',-2,1],['Zenuwachtig','😬','R',-1.5,0],['Gefrustreerd','😤','R',-1.5,0],['In de war','😕','R',-1,0],
+['Gewoon','😐','N',0,1],['Weet ik niet','🤷','N',0,1]].map(([l,e,z,v,y])=>({l,e,z,v,y}));
+const EM=Object.fromEntries(EMO.map(e=>[e.l,e]));
+const ACT=[['school','🏫','School'],['sport','⚽','Sporten'],['buiten','🌳','Buiten spelen'],['vrienden','🧒','Vriendjes'],['familie','👵','Familie of bezoek'],['thuis','🏠','Lekker thuis'],['scherm','📱','Veel schermtijd'],['creatief','🎨','Knutselen of muziek'],['uitje','🎡','Uitje'],['ruzie','💥','Ruzie gehad']].map(([k,e,l])=>({k,e,l}));
+const AC=Object.fromEntries(ACT.map(a=>[a.k,a]));
+const HARD=[['🌈','Nee, eigenlijk niet'],['🙂','Een klein beetje'],['🌧️','Ja, best wel'],['🤐','Vertel ik liever niet']];
+const NEEDS=[['🫂','Een knuffel'],['🤝','Hulp'],['🌿','Even rust'],['💬','Iemand om mee te praten'],['🎨','Iets voor mezelf'],['🏃','Even bewegen'],['✨','Niets bijzonders']];
+const SLEEP=[['😴','Goed'],['🥱','Gaat wel'],['😣','Slecht']];
+const SLV={Goed:1,'Gaat wel':.5,Slecht:0};
+const AVS=['🌸','🚀','🦊','🐼','🦄','⚽','🐬','🌈','🦖','🐱','🐻','⭐'];
+const WD=['ma','di','wo','do','vr','za','zo'],WDL=['maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag','zondag'];
+
+/* ---------- dates ---------- */
+const dk=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const todayKey=()=>{const d=new Date();if(d.getHours()<4)d.setDate(d.getDate()-1);return dk(d)};
+const addDays=(k,n)=>{const d=new Date(k+'T12:00:00');d.setDate(d.getDate()+n);return dk(d)};
+const diff=(a,b)=>Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5);
+const wdi=k=>(new Date(k+'T12:00:00').getDay()+6)%7;
+const short=k=>new Date(k+'T12:00:00').toLocaleDateString('nl-NL',{day:'numeric',month:'short'});
+const long=k=>new Date(k+'T12:00:00').toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const fmt=v=>v==null?'–':(v>0?'+':'')+v.toFixed(1).replace('.',',');
+const pct=v=>v==null?'–':Math.round(v*100)+'%';
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+
+/* ---------- state & storage ---------- */
+const LS='heartkidz_v2';
+const defSettings=()=>({profiles:[{id:'child1',name:'Naomi',age:'8-12',av:'🌸'},{id:'child2',name:'Xander',age:'5-7',av:'🚀'}],pin:null});
+let S={settings:defSettings(),cks:{}},DEMO=null;
+let dl=null,tts=null,dict=null,micTarget=null;
+const D=()=>DEMO||S;
+const key=(c,d)=>`c_${c}_${d}`;
+const prof=id=>D().settings.profiles.find(p=>p.id===id);
+const kc=i=>i===0?'var(--c1)':'var(--c2)';
+const kcOf=id=>kc(D().settings.profiles.findIndex(p=>p.id===id));
+let canStore=true;try{localStorage.setItem('hk_test','1');localStorage.removeItem('hk_test')}catch(e){canStore=false}
+try{const v=JSON.parse(localStorage.getItem(LS));if(v&&v.settings&&v.cks)S=v}catch(e){}
+function cache(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(canStore){canStore=false;toast('Opslaan op dit apparaat lukt niet. Maak een back-up.')}}}
+function saveRec(r){const k=key(r.childId,r.date);D().cks[k]=r;if(DEMO)return;cache()}
+function delRec(k){delete D().cks[k];if(DEMO)return;cache()}
+function saveSettings(){if(DEMO)return;cache()}
+/* ---------- analysis ---------- */
+function score(r){const es=(r.emotions||[]).map(l=>EM[l]).filter(Boolean);if(!es.length)return null;const m=EM[r.main]||es[0];return Math.round((.5*m.v+.5*mean(es.map(e=>e.v)))*100)/100}
+function zone(r){const e=EM[r.main]||EM[(r.emotions||[])[0]];return e?e.z:null}
+const byDate=(a,b)=>a.date<b.date?-1:a.date>b.date?1:0;
+function childRecs(cid){return Object.values(D().cks).filter(r=>r.childId===cid).sort(byDate)}
+function mood(v){if(v==null)return['nog geen gegevens','heeft nog geen dagen ingevuld'];if(v>=1.1)return['Vooral heel fijn','had vooral fijne dagen'];if(v>=.4)return['Overwegend fijn','had overwegend fijne dagen'];if(v>-.4)return['Wisselend','had wisselende dagen'];if(v>-1.1)return['Vaker lastig','had het vaker lastig'];return['Zwaar','had het zwaar']}
+function analyze(cid,from){
+  const to=todayKey(),p=prof(cid),nm=p.name,all=childRecs(cid),rs=all.filter(r=>!from||r.date>=from);
+  const start=rs.length?(from&&all[0].date<from?from:rs[0].date):null;
+  const span=start?diff(start,to)+1:0;
+  const sc=rs.map(r=>({r,s:score(r)})).filter(x=>x.s!==null);
+  const avg=mean(sc.map(x=>x.s));
+  const hardN=sc.filter(x=>x.s<-.4).length;
+  const sl=rs.filter(r=>r.sleep),goodN=sl.filter(r=>r.sleep==='Goed').length;
+  const zones={Y:0,G:0,B:0,R:0,N:0};rs.forEach(r=>{const z=zone(r);if(z)zones[z]++});
+  const emo={};rs.forEach(r=>(r.emotions||[]).forEach(e=>{if(EM[e])emo[e]=(emo[e]||0)+1}));
+  const wd=[0,1,2,3,4,5,6].map(()=>[]);sc.forEach(x=>wd[wdi(x.r.date)].push(x.s));
+  const acts=ACT.map(a=>{const w=sc.filter(x=>(x.r.activities||[]).includes(a.k)).map(x=>x.s),wo=sc.filter(x=>!(x.r.activities||[]).includes(a.k)).map(x=>x.s);return{a,n:w.length,nwo:wo.length,w:mean(w),wo:mean(wo)}}).filter(x=>x.n>=3&&x.nwo>=3).map(x=>({...x,d:x.w-x.wo})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
+  const byD=Object.fromEntries(all.map(r=>[r.date,r]));
+  const pairs=sc.map(x=>{const nx=byD[addDays(x.r.date,1)];return nx&&nx.sleep?{hard:x.s<-.4,good:nx.sleep==='Goed'?1:0}:null}).filter(Boolean);
+  const ph=pairs.filter(q=>q.hard),pn=pairs.filter(q=>!q.hard);
+  const needs={};rs.filter(r=>{const s=score(r);return(s!==null&&s<-.4)||r.hard==='Ja, best wel'}).forEach(r=>(r.need||[]).filter(n=>n!=='Niets bijzonders').forEach(n=>needs[n]=(needs[n]||0)+1));
+  const l7=all.filter(r=>r.date>addDays(to,-7)),l7s=l7.map(score).filter(v=>v!==null);
+  const p7=all.filter(r=>r.date>addDays(to,-14)&&r.date<=addDays(to,-7)).map(score).filter(v=>v!==null);
+  const ins=[];
+  const l7hard=l7s.filter(v=>v<-.4).length,l7fear=l7.filter(r=>(r.emotions||[]).some(e=>e==='Bang'||e==='Eenzaam')).length;
+  if(l7hard>=4||l7fear>=3)ins.push({t:'zR',x:`${nm} had de afgelopen 7 dagen ${l7hard>=4?l7hard+' lastige dagen':'vaker een bang of eenzaam gevoel'}. Plan een rustig moment samen, zonder meteen oplossingen te hoeven geven. Houdt dit een paar weken aan, of maak je je zorgen? Vraag dan advies aan de jeugdverpleegkundige of jeugdarts (JGZ), de huisarts of de leerkracht.`});
+  if(sc.length<5)ins.push({t:'zN',x:`Nog ${5-sc.length} check-out${5-sc.length===1?'':'s'} nodig voordat HeartKidz patronen kan laten zien.`});
+  else{
+    if(l7s.length>=3&&p7.length>=3){const d=mean(l7s)-mean(p7);if(d>=.5)ins.push({t:'zG',x:`De afgelopen week ging het duidelijk beter met ${nm} dan de week ervoor (${fmt(mean(l7s))} tegenover ${fmt(mean(p7))}).`});else if(d<=-.5)ins.push({t:'zB',x:`De afgelopen week was zwaarder voor ${nm} dan de week ervoor (${fmt(mean(l7s))} tegenover ${fmt(mean(p7))}).`})}
+    const wa=wd.map((a,i)=>({i,n:a.length,m:mean(a)})).filter(x=>x.n>=2);
+    if(wa.length>=3){const lo=wa.reduce((a,b)=>b.m<a.m?b:a),hi=wa.reduce((a,b)=>b.m>a.m?b:a);
+      if(avg-lo.m>=.6)ins.push({t:'zB',x:`Op ${WDL[lo.i]} heeft ${nm} vaker een lastige dag: gemiddeld ${fmt(lo.m)}, tegenover ${fmt(avg)} normaal.`});
+      if(hi.m-avg>=.6)ins.push({t:'zG',x:`${cap(WDL[hi.i])} is vaak een fijne dag voor ${nm} (${fmt(hi.m)}).`})}
+    acts.slice(0,3).forEach(x=>{const l=x.a.l.toLowerCase();if(x.d>=.6)ins.push({t:'zG',x:`Op dagen met „${l}” voelt ${nm} zich vaker fijn: ${fmt(x.w)} tegenover ${fmt(x.wo)} (${x.n} dagen).`});else if(x.d<=-.6)ins.push({t:'zB',x:`Op dagen met „${l}” zijn de gevoelens vaker lastig: ${fmt(x.w)} tegenover ${fmt(x.wo)} (${x.n} dagen).`})});
+    if(ph.length>=3&&pn.length>=3){const a=mean(ph.map(q=>q.good)),b=mean(pn.map(q=>q.good));if(b-a>=.25)ins.push({t:'zB',x:`Na een lastige dag slaapt ${nm} minder goed: ${pct(a)} goed geslapen, tegenover ${pct(b)} na een fijne dag. Een rustige afsluiting is dan extra waardevol.`});else if(a-b>=.25)ins.push({t:'zG',x:`Ook na lastige dagen slaapt ${nm} meestal goed (${pct(a)}).`})}
+    const tn=Object.entries(needs).sort((a,b)=>b[1]-a[1])[0];if(tn&&tn[1]>=2)ins.push({t:'zY',x:`Op lastige dagen kiest ${nm} het vaakst „${tn[0].toLowerCase()}” (${tn[1]}×). Een goede aanwijzing voor wat helpt.`});
+    const rv=rs.filter(r=>r.hard==='Vertel ik liever niet').length;if(rv>=3)ins.push({t:'zN',x:`${nm} koos ${rv}× „vertel ik liever niet”. Dat mag. Samen iets doen, zoals een wandeling of tekenen, maakt praten soms makkelijker.`});
+  }
+  return{cid,p,nm,rs,n:rs.length,span,avg,hardN,hardPct:sc.length?hardN/sc.length:null,sleepPct:sl.length?goodN/sl.length:null,zones,emo,wd,acts,needs,ins,sc};
+}
+
+/* ---------- ui helpers ---------- */
+function toast(t){const el=document.createElement('div');el.className='toast';el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),3200)}
+let modalRes=null;
+function modal({title,body='',ok='Oké',cancel=null,input=null,danger=false}){
+  $('#ov').innerHTML=`<div class="ov"><div class="box" role="dialog" aria-modal="true" aria-labelledby="mt"><h3 id="mt" style="font-size:1.35rem">${title}</h3><div class="muted" style="margin:8px 0 12px">${body}</div>${input?`<input id="mInput" type="${input.type||'text'}" inputmode="${input.mode||'text'}" placeholder="${esc(input.ph||'')}" autocomplete="off">`:''}<div class="acts" style="margin-top:16px">${cancel?`<button class="btn alt" data-act="mNo">${cancel}</button>`:''}<button class="btn ${danger?'danger':''}" data-act="mOk">${ok}</button></div></div></div>`;
+  const i=$('#mInput');if(i)setTimeout(()=>i.focus(),30);
+  return new Promise(r=>modalRes=r);
+}
+function closeModal(ok){const v=$('#mInput')?.value;$('#ov').innerHTML='';const r=modalRes;modalRes=null;r&&r({ok,value:v})}
+function speakBtn(text){return tts?`<button class="say" data-act="speak" data-t="${esc(text)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>Lees voor</button>`:''}
+function micBtn(target){return dict?`<button class="say" data-act="mic" data-target="${target}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg><span>Inspreken</span></button>`:''}
+
+/* ---------- navigation ---------- */
+let screen='home',parentOpen=false;
+function go(id){
+  if(id==='home'||id==='mine')parentOpen=false;
+  screen=id;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
+  document.body.classList.toggle('flow',id==='flow');
+  if(id==='home')renderHome();if(id==='mine')renderMine();if(id==='parent')renderParent();
+  window.scrollTo(0,0);
+}
+function refresh(){
+  const a=document.activeElement;if(a&&/INPUT|TEXTAREA|SELECT/.test(a.tagName))return;
+  if(screen==='home')renderHome();else if(screen==='mine')renderMine();else if(screen==='parent')renderParent();
+}
+
+/* ---------- home ---------- */
+function scene(){
+  let s='';let seed=7;const r=()=>(seed=seed*16807%2147483647)/2147483647;
+  for(let i=0;i<46;i++){const x=r()*400,y=r()*150,o=.25+r()*.7,z=r()*1.6+.4;s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${z.toFixed(2)}" fill="#fff" opacity="${o.toFixed(2)}"/>`}
+  s+=`<circle cx="330" cy="58" r="30" fill="#fff4d6"/><circle cx="343" cy="50" r="27" fill="var(--night)"/>`;
+  s+=`<path d="M0 190 Q90 160 190 182 T400 172 V220 H0z" fill="#ffffff" opacity=".07"/><path d="M0 205 Q120 186 250 202 T400 196 V220 H0z" fill="#ffffff" opacity=".08"/>`;
+  s+=`<g transform="translate(232 26) scale(1.7)"><path d="${HEART}" fill="var(--heart)"/></g><g transform="translate(276 66) scale(1.1)"><path d="${HEART}" fill="#ffb3bd"/></g>`;
+  $('#sceneSvg').innerHTML=s;
+}
+function renderHome(){
+  $('#today').textContent=new Date(todayKey()+'T12:00:00').toLocaleDateString('nl-NL',{weekday:'long',day:'numeric',month:'long'});
+  const t=todayKey();
+  $('#kids').innerHTML=D().settings.profiles.map((p,i)=>{
+    const done=D().cks[key(p.id,t)];
+    const strip=[6,5,4,3,2,1,0].map(n=>{const d=addDays(t,-n),r=D().cks[key(p.id,d)];return heart(r&&zone(r),short(d)+(r?': '+ZONES[zone(r)||'N'].n:': niet ingevuld'))}).join('');
+    return`<button class="kid" style="--kc:${kc(i)}" data-act="start" data-id="${p.id}"><div class="av">${p.av}</div><strong>${esc(p.name)}</strong><span class="st">${done?'<b>Vandaag gedaan ✓</b> · aanpassen':'Start je check-out →'}</span><div class="strip" aria-label="Laatste 7 dagen">${strip}</div></button>`}).join('');
+  const any=Object.keys(S.cks).length;
+  if(!canStore&&!DEMO){$('#homeDemo').innerHTML='<h3>Opslaan lukt niet</h3><p class="muted small">Deze browser bewaart niets (bijvoorbeeld privé-modus). Open HeartKidz in een gewone browser op dit apparaat.</p>';return}
+  $('#homeDemo').innerHTML=DEMO?`<h3>Voorbeeld actief</h3><p class="muted small">Alles wat je nu ziet en invult is nep en wordt niet bewaard.</p><button class="btn alt full" data-act="demoOff">Terug naar echte gegevens</button>`:
+   `<h3>${any?'Samen terugkijken':'Benieuwd hoe het werkt?'}</h3><p class="muted small">${any?'Bij Ouders zie je patronen per kind: welke dagen lastiger zijn, wat helpt en hoe het slapen gaat.':'Bekijk de app met zes weken voorbeelddata. Je echte gegevens blijven onaangeroerd.'}</p><button class="btn alt full" data-act="${any?'goParent':'demoOn'}">${any?'Naar ouderoverzicht':'Bekijk met voorbeelddata'}</button>`;
+}
+
+/* ---------- check-out flow ---------- */
+const STEPS=['emotions','activities','best','hard','need','sleep','tomorrow'];
+let draft=null,step=0;
+function startFlow(id){
+  const t=todayKey(),ex=D().cks[key(id,t)];
+  draft=ex?JSON.parse(JSON.stringify(ex)):{childId:id,date:t,emotions:[],main:'',activities:[],best:'',hard:'',hardDetail:'',need:[],sleep:'',tomorrow:'',worry:''};
+  step=0;go('flow');renderStep();
+}
+function opt(f,v,e,lab,on,z){return`<button class="opt ${on?'on':''}" ${z?`style="--z:var(--z${z})"`:''} data-act="pick" data-f="${f}" data-v="${esc(v)}" aria-pressed="${on}"><span class="e">${e}</span><span>${esc(lab)}</span></button>`}
+function renderStep(){
+  const p=prof(draft.childId),young=p.age==='5-7',k=STEPS[step];
+  $('#flowKid').textContent=p.av+' '+p.name;
+  $('#prog').style.width=((step+1)/STEPS.length*100)+'%';
+  let title='',hint='',h='';
+  if(k==='emotions'){
+    title='Wat voor weer was het vandaag in jou?';hint=young?'Tik op de gezichtjes die passen. Meer dan één mag ook.':'Kies één of meer gevoelens (maximaal 4). Op één dag kun je heel verschillende dingen voelen.';
+    ['Y','G','B','R','N'].forEach(z=>{const list=EMO.filter(e=>e.z===z&&(!young||e.y));h+=`<div class="zone" style="--z:var(--z${z})"><i></i>${ZONES[z].n} <span>${ZONES[z].d}</span></div><div class="opts">${list.map(e=>opt('emotions',e.l,e.e,e.l,draft.emotions.includes(e.l),z)).join('')}</div>`});
+    if(draft.emotions.length>1)h+=`<div class="card" style="background:var(--soft)"><b>Welk gevoel was het grootst?</b><div class="chips" style="margin-top:10px">${draft.emotions.map(l=>`<button class="chip ${draft.main===l?'on':''}" data-act="main" data-v="${esc(l)}">${EM[l]?EM[l].e:''} ${esc(l)}</button>`).join('')}</div></div>`;
+  }
+  if(k==='activities'){title='Wat heb je vandaag gedaan?';hint='Tik alles aan wat past. Zo ontdekken we samen waar je je fijn bij voelt.';h=`<div class="opts">${ACT.map(a=>opt('activities',a.k,a.e,a.l,draft.activities.includes(a.k))).join('')}</div>`}
+  if(k==='best'){title=young?'Wat was het leukste van vandaag?':'Wat was het leukste moment van vandaag?';hint=young?'Een paar woordjes is genoeg. Papa of mama mag helpen.':'Iets waar je blij van werd, om moest lachen of trots op was. Iets kleins is ook goed.';h=`<textarea id="tBest" data-f="best" maxlength="1200" placeholder="Het leukste was…">${esc(draft.best)}</textarea><div class="tools">${micBtn('tBest')}</div>`}
+  if(k==='hard'){title='Was er iets wat vandaag minder leuk was?';hint='Je mag eerlijk zijn. Je hoeft niets te vertellen als je dat niet wilt.';h=`<div class="opts">${HARD.map(([e,l])=>opt('hard',l,e,l,draft.hard===l)).join('')}</div>`;
+    if(draft.hard==='Een klein beetje'||draft.hard==='Ja, best wel')h+=`<div class="card" style="background:var(--soft)"><b>Wil je vertellen wat er gebeurde?</b><textarea id="tHard" data-f="hardDetail" style="margin-top:10px;min-height:90px" maxlength="1200" placeholder="Mag ook leeg blijven">${esc(draft.hardDetail)}</textarea><div class="tools">${micBtn('tHard')}</div></div>`;
+    if(draft.hard==='Vertel ik liever niet')h+=`<p class="note">Dat is helemaal oké. Je hoeft niets te vertellen.</p>`}
+  if(k==='need'){title=draft.hard==='Nee, eigenlijk niet'?'Waar had je vandaag zin in?':'Wat had jou vandaag kunnen helpen?';hint='Kies wat past. Soms helpt het om te bedenken wat je nodig had.';h=`<div class="opts">${NEEDS.map(([e,l])=>opt('need',l,e,l,draft.need.includes(l))).join('')}</div>`}
+  if(k==='sleep'){title='Hoe heb je vannacht geslapen?';hint='Denk aan afgelopen nacht. Werd je uitgerust wakker?';h=`<div class="opts">${SLEEP.map(([e,l])=>opt('sleep',l,e,l,draft.sleep===l)).join('')}</div>`}
+  if(k==='tomorrow'){title='Waar kijk je morgen naar uit?';hint='Iets kleins is ook helemaal goed.';h=`<textarea id="tTom" data-f="tomorrow" maxlength="1200" placeholder="Morgen ga ik…">${esc(draft.tomorrow)}</textarea><div class="tools">${micBtn('tTom')}</div>`;
+    if(!young)h+=`<div class="field"><label for="tWor">Is er ook iets waar je een beetje tegenop ziet?</label><textarea id="tWor" data-f="worry" style="min-height:80px" maxlength="1200" placeholder="Mag ook leeg blijven">${esc(draft.worry)}</textarea><div class="tools">${micBtn('tWor')}</div></div>`}
+  $('#stepBox').innerHTML=`<div class="kicker">Stap ${step+1} van ${STEPS.length}</div><h1 class="q">${title}</h1><p class="hint">${hint}</p><div class="tools">${speakBtn(title+' '+hint)}</div>${h}`;
+  $('#stepActs').innerHTML=`<button class="btn line" data-act="prev" ${step===0?'disabled':''}>Terug</button><button class="btn" data-act="next">${step===STEPS.length-1?'Dag afsluiten':'Verder'}</button>`;
+}
+function pick(f,v){
+  if(f==='hard'||f==='sleep'){draft[f]=draft[f]===v?'':v}
+  else{const a=draft[f];const i=a.indexOf(v);
+    if(i>=0)a.splice(i,1);
+    else{if(f==='emotions'&&a.length>=4){toast('Kies er maximaal 4');return}
+      if(f==='need'&&v==='Niets bijzonders')a.length=0;else if(f==='need'){const j=a.indexOf('Niets bijzonders');if(j>=0)a.splice(j,1)}
+      a.push(v)}
+    if(f==='emotions'&&!a.includes(draft.main))draft.main=a[0]||'';}
+  const y=window.scrollY;renderStep();window.scrollTo(0,y);
+}
+function finish(){
+  ['best','hardDetail','tomorrow','worry'].forEach(f=>draft[f]=(draft[f]||'').trim());
+  if(!draft.emotions.includes(draft.main))draft.main=draft.emotions[0]||'';
+  draft.completedAt=new Date().toISOString();
+  saveRec(draft);
+  const p=prof(draft.childId),z=zone(draft)||'N',e=EM[draft.main];
+  go('done');
+  $('#doneBox').innerHTML=`<div style="width:92px;margin:0 auto">${heart(z,ZONES[z].n)}</div><h2 style="font-size:2rem;margin-top:8px">Dankjewel, ${esc(p.name)}!</h2><p class="muted">Jouw weer vandaag: <b>${ZONES[z].n}</b>${e?` · ${e.e} ${esc(e.l)}`:''}. Fijn dat je even hebt stilgestaan bij je dag.</p><div class="breath" id="breath">Klaar?</div><button class="btn alt" data-act="breathe" id="bBtn">Samen 3× rustig ademen</button><p class="muted small" style="margin-top:18px">Slaap lekker straks. Morgen is een nieuwe dag.</p><button class="btn full" data-act="go" data-s="home" style="margin-top:8px">Klaar</button>`;
+}
+let breathT=null;
+function breathe(){const b=$('#breath');if(!b)return;clearInterval(breathT);b.classList.remove('go');void b.offsetWidth;b.classList.add('go');let n=0;const lines=['Adem in…','Adem uit…'];b.textContent=lines[0];
+  breathT=setInterval(()=>{n++;if(n>=6||!document.body.contains(b)){clearInterval(breathT);if(b)b.textContent='Goed gedaan 💛';return}b.textContent=lines[n%2]},4000)}
+
+/* ---------- my days (kids) ---------- */
+let mineKid=null,mineDay=null;
+function renderMine(){
+  const box=$('#mineBox');
+  if(!mineKid||!prof(mineKid)){box.innerHTML=`<h1 class="q" style="margin-top:8px">Mijn dagen</h1><p class="hint">Wie ben jij? Je ziet alleen je eigen dagen.</p><div class="kids">${D().settings.profiles.map((p,i)=>`<button class="kid" style="--kc:${kc(i)}" data-act="mineKid" data-id="${p.id}"><div class="av">${p.av}</div><strong>${esc(p.name)}</strong></button>`).join('')}</div>`;return}
+  const p=prof(mineKid),t=todayKey();
+  if(mineDay){const r=D().cks[key(p.id,mineDay)];box.innerHTML=`<div class="row sp"><h1 class="q">${esc(cap(long(mineDay)))}</h1><button class="btn line sm" data-act="mineDay" data-d="">Terug</button></div>${r?dayDetail(r,false):'<p class="muted">Deze dag is niet ingevuld.</p>'}`;return}
+  const end=addDays(t,6-wdi(t)),startD=addDays(end,-34);
+  let cells=WD.map(d=>`<div class="h">${d}</div>`).join('');
+  const zc={Y:0,G:0,B:0,R:0,N:0};
+  for(let i=0;i<35;i++){const d=addDays(startD,i),r=D().cks[key(p.id,d)],z=r&&zone(r);if(z&&d>addDays(t,-7))zc[z]++;
+    cells+=d>t?`<button disabled aria-hidden="true">${heart(null)}<span>&nbsp;</span></button>`:`<button data-act="mineDay" data-d="${d}" class="${d===t?'tod':''}" aria-label="${long(d)}">${heart(z,r?ZONES[z||'N'].n:'niet ingevuld')}<span>${+d.slice(8)}</span></button>`}
+  const wk=Object.entries(zc).filter(x=>x[1]);
+  box.innerHTML=`<div class="row sp" style="margin-top:8px"><h1 class="q">${p.av} ${esc(p.name)}</h1><button class="btn line sm" data-act="mineKid" data-id="">Wissel</button></div>
+  <div class="card"><h3>Jouw weer deze week</h3>${wk.length?`<div class="zl" style="font-size:1rem">${wk.map(([z,n])=>`<span style="--z:var(--z${z})"><i></i>${ZONES[z].n} ${n}×</span>`).join('')}</div>`:'<p class="muted small">Nog geen dagen deze week.</p>'}</div>
+  <div class="card"><h3>Je hartjeskalender</h3><p class="muted small">Elk hartje is een dag. Tik erop om terug te lezen.</p><div class="cal">${cells}</div></div>`;
+}
+function dayDetail(r,parent){
+  const z=zone(r)||'N',rows=[['Gevoelens',(r.emotions||[]).map(e=>(EM[e]?EM[e].e+' ':'')+e+(e===r.main&&r.emotions.length>1?' (grootst)':'')).join(', ')],['Gedaan',(r.activities||[]).map(a=>AC[a]?AC[a].l:a).join(', ')],['Leukste moment',r.best],['Minder leuk',r.hard],['Wat er gebeurde',r.hardDetail],['Wat had geholpen',(r.need||[]).join(', ')],['Geslapen (nacht ervoor)',r.sleep],['Morgen',r.tomorrow],['Ziet tegenop tegen',r.worry]];
+  return`<div class="row"><div style="width:40px">${heart(z,ZONES[z].n)}</div><b>${ZONES[z].n}</b>${parent&&score(r)!==null?`<span class="muted small">stemming ${fmt(score(r))}</span>`:''}</div>`+rows.filter(x=>x[1]).map(([l,v])=>`<div class="ans"><b>${l}</b><p>${esc(v)}</p></div>`).join('');
+}
+
+/* ---------- parent ---------- */
+let pTab='overview',pKid='all',pPer=30,ros=[];
+function renderParent(){
+  ros.forEach(r=>r.disconnect());ros=[];
+  const box=$('#parentBox');
+  if(!parentOpen&&!DEMO){
+    const has=!!S.settings.pin;
+    box.innerHTML=`<h1 class="q" style="margin-top:8px">Voor ouders</h1><div class="card" style="max-width:460px">${has?`<h3>Oudercode</h3><p class="muted small">Dit deel is alleen voor papa en mama.</p><div class="field"><label for="pinIn">Code</label><input id="pinIn" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><button class="btn full" data-act="unlock">Openen</button><button class="btn line full" style="margin-top:8px" data-act="forgot">Code vergeten?</button>`:`<h3>Kies een oudercode</h3><p class="muted small">4 tot 8 cijfers. Zo lezen de kinderen niet zomaar het ouderoverzicht. Het is een drempel, geen kluis.</p><div class="field"><label for="pinA">Nieuwe code</label><input id="pinA" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><div class="field"><label for="pinB">Herhaal code</label><input id="pinB" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><button class="btn full" data-act="pinCreate">Code instellen</button>`}</div><div class="card" style="max-width:460px"><h3>Eerst rondkijken?</h3><p class="muted small">Bekijk het ouderoverzicht met zes weken voorbeelddata.</p><button class="btn alt full" data-act="demoOn">Voorbeelddata bekijken</button></div>`;
+    return;
+  }
+  const tabs=[['overview','Patronen'],['days','Antwoorden'],['manage','Beheer']];
+  box.innerHTML=`<div class="row sp" style="margin-top:8px"><h1 class="q">Ouderoverzicht</h1><button class="btn line sm" data-act="lock">Sluiten</button></div><div class="chips" style="margin:8px 0 6px">${tabs.map(([k,l])=>`<button class="chip ${pTab===k?'on':''}" data-act="pTab" data-v="${k}">${l}</button>`).join('')}</div><div id="pBody"></div>`;
+  if(pTab==='overview')renderOverview();if(pTab==='days')renderDays();if(pTab==='manage')renderManage();
+}
+function kidChips(){const ps=D().settings.profiles;return`<div class="chips"><button class="chip ${pKid==='all'?'on':''}" data-act="pKid" data-v="all">Beide</button>${ps.map(p=>`<button class="chip ${pKid===p.id?'on':''}" data-act="pKid" data-v="${p.id}">${p.av} ${esc(p.name)}</button>`).join('')}</div>`}
+function obs(el,fn){const r=new ResizeObserver(()=>fn());r.observe(el);ros.push(r)}
+function renderOverview(){
+  const t=todayKey(),from=pPer==='all'?null:addDays(t,-(pPer-1));
+  const ps=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid);
+  const A=ps.map(p=>analyze(p.id,from));
+  const head=A.map((a,i)=>(i===0?esc(a.nm):esc(a.nm))+' '+mood(a.avg)[1]).join(', ');
+  const per=[[7,'7 dagen'],[30,'30 dagen'],[90,'3 maanden'],['all','Alles']];
+  let h=`<div class="ctrl">${kidChips()}<div class="chips">${per.map(([v,l])=>`<button class="chip ${pPer===v?'on':''}" data-act="pPer" data-v="${v}">${l}</button>`).join('')}</div></div>
+  <h2 class="find">${cap(head)}.</h2><p class="muted small" style="margin:0 0 6px">Stemming per dag: van −2 (lastig) tot +2 (fijn), berekend uit de gekozen gevoelens. Het grootste gevoel telt het zwaarst.</p>`;
+  const allDates=A.flatMap(a=>a.rs.map(r=>r.date)).sort();
+  const start=from||(allDates[0]||t);
+  h+=`<div class="card"><div class="row sp"><h3>Stemming per dag</h3><div class="legend">${A.map(a=>`<span style="--k:${kcOf(a.cid)}"><i></i>${esc(a.nm)}</span>`).join('')}</div></div><div class="fig" id="lineFig"><svg role="img" aria-label="Lijngrafiek van de stemming per dag"></svg><div class="tip"></div></div></div>`;
+  h+=`<div class="card"><h3>Per dag van de week</h3><p class="muted small" style="margin-top:0">Gemiddelde stemming per weekdag. Groen is fijner, blauw is lastiger.</p><div class="wk"><div></div>${WD.map(d=>`<div class="hd">${d}</div>`).join('')}${A.map(a=>`<div class="nm" title="${esc(a.nm)}">${a.p.av} <span class="nmx">${esc(a.nm)}</span></div>`+a.wd.map((arr,i)=>{const m=mean(arr);if(m===null)return`<div class="c" style="background:var(--soft);color:var(--muted)">–</div>`;const p=Math.min(85,Math.abs(m)/2*85+12);const c=m>=0?'var(--zG)':'var(--zB)';return`<div class="c" title="${WDL[i]}: ${fmt(m)} (${arr.length} dagen)" style="background:color-mix(in oklab,${c} ${p.toFixed(0)}%,var(--soft));color:${p>48?'#fff':'var(--ink)'}">${fmt(m)}</div>`}).join('')).join('')}</div></div>`;
+  h+=`<div class="panels ${A.length>1?'two':''}">${A.map(panel).join('')}</div>`;
+  h+=`<p class="note" style="margin-top:14px">Dit overzicht laat zien wat je kind zelf heeft gekozen. Het is geen beoordeling of diagnose, maar een aanleiding voor een rustig gesprek. Patronen worden betrouwbaarder naarmate er meer dagen zijn ingevuld.</p>`;
+  const lb=S.settings.lastBackup,nrec=Object.keys(S.cks).length;
+  if(!DEMO&&nrec>=7&&(!lb||diff(lb.slice(0,10),t)>=14))h=`<div class="note" style="margin-bottom:12px"><b>Tijd voor een back-up.</b> Alles staat alleen op dit apparaat. ${lb?'Laatste back-up: '+new Date(lb).toLocaleDateString('nl-NL')+'.':'Je hebt nog geen back-up gemaakt.'} <button class="btn sm" style="margin-top:8px" data-act="backup">Back-up maken</button></div>`+h;
+  $('#pBody').innerHTML=h;
+  lineChart($('#lineFig'),A.map(a=>({name:a.nm,col:kcOf(a.cid),recs:a.rs})),start,t);
+}
+function panel(a){
+  const zs=Object.entries(a.zones).filter(x=>x[1]),zt=zs.reduce((s,x)=>s+x[1],0);
+  const em=Object.entries(a.emo).sort((x,y)=>y[1]-x[1]).slice(0,6),emax=em[0]?em[0][1]:1;
+  const nd=Object.entries(a.needs).sort((x,y)=>y[1]-x[1]).slice(0,4),nmax=nd[0]?nd[0][1]:1;
+  const filled=a.span?Math.min(1,a.n/a.span):null;
+  let h=`<div class="panel" style="--kc:${kcOf(a.cid)}"><div class="row sp"><h3>${a.p.av} ${esc(a.nm)}</h3><span class="muted small">${a.p.age==='5-7'?'5–7 jaar':'8–12 jaar'}</span></div>
+  <div class="kpis" style="margin-top:10px"><div class="kpi"><strong>${a.n}${a.span?'<span class="muted" style="font-size:1rem"> / '+a.span+'</span>':''}</strong><small>dagen ingevuld${filled!==null?' · '+pct(filled):''}</small></div><div class="kpi"><strong>${fmt(a.avg)}</strong><small>${mood(a.avg)[0]}</small></div><div class="kpi"><strong>${pct(a.hardPct)}</strong><small>lastige dagen</small></div><div class="kpi"><strong>${pct(a.sleepPct)}</strong><small>goed geslapen</small></div></div>`;
+  h+=`<div class="sub">Wat valt op</div><ul class="ins">${a.ins.length?a.ins.map(i=>`<li style="--t:var(--${i.t})">${esc(i.x)}</li>`).join(''):'<li style="--t:var(--zN)">Nog geen opvallende patronen in deze periode. Dat is ook goed nieuws.</li>'}</ul>`;
+  if(zt)h+=`<div class="sub">Innerlijk weer</div><div class="stack" role="img" aria-label="${zs.map(([z,n])=>ZONES[z].n+' '+Math.round(n/zt*100)+'%').join(', ')}">${zs.map(([z,n])=>`<i style="--z:var(--z${z});width:${n/zt*100}%" title="${ZONES[z].n}: ${n} dagen"></i>`).join('')}</div><div class="zl">${zs.map(([z,n])=>`<span style="--z:var(--z${z})"><i></i>${ZONES[z].n} ${Math.round(n/zt*100)}%</span>`).join('')}</div>`;
+  if(a.acts.length)h+=`<div class="sub">Wat maakt verschil?</div><p class="muted small" style="margin:-4px 0 6px">Grijs: dagen zonder · gekleurd: dagen met deze activiteit</p>${a.acts.slice(0,6).map(x=>{const L=v=>((v+2)/4*100).toFixed(1);const lo=Math.min(x.w,x.wo),hi=Math.max(x.w,x.wo);return`<div class="hr" title="Met: ${fmt(x.w)} (${x.n} dagen) · zonder: ${fmt(x.wo)}"><span>${x.a.e} ${esc(x.a.l)}</span><div class="db"><div class="ln" style="left:${L(lo)}%;width:${(L(hi)-L(lo)).toFixed(1)}%"></div><div class="dt" style="left:${L(x.wo)}%;background:var(--zN)"></div><div class="dt" style="left:${L(x.w)}%;background:var(--kc)"></div></div><b>${fmt(x.d)}</b></div>`}).join('')}`;
+  if(em.length)h+=`<div class="sub">Meest gekozen gevoelens</div>${em.map(([e,n])=>`<div class="hr"><span>${EM[e].e} ${esc(e)}</span><div class="tr"><i style="width:${n/emax*100}%;background:var(--z${EM[e].z})"></i></div><b>${n}×</b></div>`).join('')}`;
+  if(nd.length)h+=`<div class="sub">Wat helpt op lastige dagen</div>${nd.map(([e,n])=>`<div class="hr"><span>${esc(e)}</span><div class="tr"><i style="width:${n/nmax*100}%"></i></div><b>${n}×</b></div>`).join('')}`;
+  return h+'</div>';
+}
+function lineChart(fig,series,from,to){
+  const s=fig.querySelector('svg'),tip=fig.querySelector('.tip');
+  const days=[];for(let d=from;d<=to;d=addDays(d,1))days.push(d);
+  const idx=Object.fromEntries(days.map((d,i)=>[d,i]));
+  const draw=()=>{
+    const W=s.clientWidth,H=s.clientHeight;if(!W)return;
+    const multi=series.length>1,L=W<520?52:64,R=multi?(W<520?14:70):14,T=12,B=28,iw=W-L-R,ih=H-T-B;
+    const x=i=>L+(days.length<2?iw/2:i*iw/(days.length-1)),y=v=>T+(2-v)/4*ih;
+    let g=`<rect x="${L}" y="${T}" width="${iw}" height="${ih/2}" fill="var(--zG)" opacity=".07"/><rect x="${L}" y="${y(0)}" width="${iw}" height="${ih/2}" fill="var(--zB)" opacity=".07"/>`;
+    [[2,'fijn'],[0,'neutraal'],[-2,'lastig']].forEach(([v,tx])=>g+=`<line x1="${L}" x2="${L+iw}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v?'stroke-dasharray="2 4"':''}/><text x="${L-8}" y="${y(v)+4}" text-anchor="end" class="ax">${tx}</text>`);
+    const nt=W<520?3:6,st=Math.max(1,Math.ceil((days.length-1)/(nt-1)));
+    for(let i=0;i<days.length;i+=st)g+=`<text x="${x(i)}" y="${H-8}" text-anchor="${i===0?'start':'middle'}" class="ax">${short(days[i])}</text>`;
+    const ends=[];
+    series.forEach(se=>{
+      const pts=se.recs.map(r=>({i:idx[r.date],s:score(r)})).filter(p=>p.i!==undefined&&p.s!==null);
+      if(!pts.length)return;
+      g+=`<polyline points="${pts.map(p=>x(p.i).toFixed(1)+','+y(p.s).toFixed(1)).join(' ')}" fill="none" stroke="${se.col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+      if(days.length<=100)g+=pts.map(p=>`<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.s).toFixed(1)}" r="4" fill="${se.col}" stroke="var(--paper)" stroke-width="2"/>`).join('');
+      const lp=pts[pts.length-1];ends.push({y:y(lp.s),n:se.name,c:se.col});
+    });
+    if(multi&&W>=520){ends.sort((a,b)=>a.y-b.y);for(let i=1;i<ends.length;i++)if(ends[i].y-ends[i-1].y<16)ends[i].y=ends[i-1].y+16;ends.forEach(e=>g+=`<text x="${L+iw+8}" y="${e.y+4}" class="ax" style="fill:${e.c}">${esc(e.n)}</text>`)}
+    if(!series.some(se=>se.recs.some(r=>score(r)!==null)))g+=`<text x="${L+iw/2}" y="${T+ih/2-10}" text-anchor="middle" class="ax">Nog geen dagen in deze periode</text>`;
+    g+=`<line class="hx" x1="0" x2="0" y1="${T}" y2="${T+ih}" stroke="var(--muted)" opacity="0"/><rect x="${L}" y="0" width="${iw}" height="${H}" fill="transparent"/>`;
+    s.innerHTML=g;
+    const hx=s.querySelector('.hx');
+    s.onpointermove=e=>{const r=s.getBoundingClientRect();let i=Math.round((e.clientX-r.left-L)/(days.length<2?1:iw/(days.length-1)));i=Math.max(0,Math.min(days.length-1,i));const d=days[i];
+      hx.setAttribute('x1',x(i));hx.setAttribute('x2',x(i));hx.setAttribute('opacity','.5');
+      tip.innerHTML=`<b>${esc(cap(long(d)))}</b>`+series.map(se=>{const rc=se.recs.find(q=>q.date===d);const m=rc&&EM[rc.main||(rc.emotions||[])[0]];return`<div>${esc(se.name)}: ${rc?(m?m.e+' '+esc(m.l)+' · '+fmt(score(rc)):'geen gevoel gekozen'):'niet ingevuld'}</div>`}).join('');
+      tip.style.display='block';tip.style.left=Math.max(4,Math.min(W-174,x(i)+12))+'px';tip.style.top='8px'};
+    s.onpointerleave=()=>{tip.style.display='none';hx.setAttribute('opacity','0')};
+  };
+  obs(fig,draw);
+}
+function renderDays(){
+  const rs=Object.entries(D().cks).filter(([k,r])=>pKid==='all'||r.childId===pKid).sort((a,b)=>byDate(b[1],a[1]));
+  $('#pBody').innerHTML=`<div class="ctrl">${kidChips()}</div>`+(rs.length?rs.slice(0,120).map(([k,r])=>{const p=prof(r.childId)||{name:'Kind',av:'🌈'},z=zone(r)||'N';
+    return`<details class="day"><summary>${heart(z,ZONES[z].n)}<div style="flex:1"><b>${p.av} ${esc(p.name)} · ${esc(long(r.date))}</b><div class="muted small">${esc((r.emotions||[]).join(' · ')||'Geen gevoel gekozen')}${r.parentNote?' · notitie':''}</div></div></summary><div class="in">${dayDetail(r,true)}<div class="field"><label for="n_${k}">Notitie van ouder (alleen hier zichtbaar)</label><textarea id="n_${k}" style="min-height:70px" placeholder="Bijv. samen over gepraat, tip van juf…">${esc(r.parentNote||'')}</textarea></div><div class="row"><button class="btn alt sm" data-act="saveNote" data-k="${k}">Notitie bewaren</button><button class="btn danger sm" data-act="delRec" data-k="${k}">Dag verwijderen</button></div></div></details>`}).join(''):'<div class="card muted">Nog geen antwoorden opgeslagen.</div>');
+}
+function renderManage(){
+  const lb=S.settings.lastBackup;const st=DEMO?'Voorbeeldmodus: niets wordt bewaard.':!canStore?'Let op: deze browser staat opslaan niet toe. Gegevens verdwijnen als je de pagina sluit. Open de app in een gewone browser (niet privé).':'Alles staat alleen op dit apparaat, in deze browser. Er gaat niets naar een online database. Wis je browsergegevens of gebruik je een ander apparaat, dan zijn de gegevens daar niet. Maak daarom regelmatig een back-up.'+(lb?' Laatste back-up: '+new Date(lb).toLocaleDateString('nl-NL')+'.':' Er is nog geen back-up gemaakt.');
+  $('#pBody').innerHTML=`<div class="panels two"><div class="card" style="margin:0"><h3>Kinderen</h3>${D().settings.profiles.map((p,i)=>`<div class="field"><label for="nm${i}">Naam kind ${i+1}</label><input type="text" id="nm${i}" maxlength="24" value="${esc(p.name)}"></div><div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1;margin-top:0"><label for="ag${i}">Leeftijd</label><select id="ag${i}"><option value="5-7" ${p.age==='5-7'?'selected':''}>5–7 jaar</option><option value="8-12" ${p.age==='8-12'?'selected':''}>8–12 jaar</option></select></div><div class="field" style="flex:1;margin-top:0"><label for="av${i}">Plaatje</label><select id="av${i}">${AVS.map(a=>`<option ${a===p.av?'selected':''}>${a}</option>`).join('')}</select></div></div>`).join('')}<button class="btn full" data-act="saveProfiles">Opslaan</button><p class="muted small">5–7 jaar krijgt minder gevoelens om uit te kiezen en kortere vragen.</p></div>
+  <div><div class="card" style="margin-top:0"><h3>Oudercode wijzigen</h3><div class="field"><label for="newPin">Nieuwe code (4–8 cijfers)</label><input id="newPin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><button class="btn alt full" data-act="savePin">Code wijzigen</button></div>
+  <div class="card"><h3>Opslag en back-up</h3><p class="muted small">${st}</p><div class="row"><button class="btn sm" data-act="backup">Back-up maken</button><button class="btn alt sm" data-act="csv">Exporteer als tabel (CSV)</button><button class="btn alt sm" data-act="restore">Back-up terugzetten</button></div><p class="muted small">Terugzetten kan ook met een back-up uit de oude Daglicht-versie.</p></div>
+  <div class="card"><h3>Voorbeelddata</h3><p class="muted small">Bekijk hoe de patronen eruitzien met zes weken nepgegevens.</p><button class="btn alt full" data-act="${DEMO?'demoOff':'demoOn'}">${DEMO?'Voorbeeld stoppen':'Voorbeelddata bekijken'}</button></div>
+  <div class="card"><h3>Alles verwijderen</h3><p class="muted small">Verwijdert alle check-outs, instellingen en de oudercode.</p><button class="btn danger full" data-act="wipe">Alle gegevens verwijderen</button></div></div></div>`;
+}
+
+/* ---------- export / import ---------- */
+async function offerFile(filename,data,label){
+  if(dl){try{await dl.save({filename,data});return}catch(e){if(e&&/declin|cancel|denied/i.test(e.code||''))return}}
+  if(!window.claude){try{const u=URL.createObjectURL(new Blob([data],{type:filename.endsWith('.csv')?'text/csv':'application/json'}));const a=document.createElement('a');a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('Bestand gedownload');return}catch(e){}}
+  const r=await modal({title:label,body:'Downloaden lukt hier niet. Kopieer de inhoud en bewaar die in een tekstbestand.',ok:'Kopiëren',cancel:'Sluiten'});
+  if(r.ok){try{await navigator.clipboard.writeText(data);toast('Gekopieerd')}catch(e){toast('Kopiëren lukte niet')}}
+}
+function backup(){if(!DEMO){S.settings.lastBackup=new Date().toISOString();cache()}offerFile('HeartKidz-backup-'+todayKey()+'.json',JSON.stringify({app:'HeartKidz',v:2,exported:new Date().toISOString(),...S},null,2),'Back-up')}
+function csv(){
+  const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const head=['datum','kind','gevoelens','grootste gevoel','weer','stemming','gedaan','leukste moment','minder leuk','wat er gebeurde','wat had geholpen','geslapen','morgen','ziet tegenop','notitie ouder'];
+  const rows=Object.values(S.cks).sort(byDate).map(r=>[r.date,(prof(r.childId)||{}).name,(r.emotions||[]).join('; '),r.main,ZONES[zone(r)||'N'].n,score(r)??'',(r.activities||[]).map(a=>AC[a]?AC[a].l:a).join('; '),r.best,r.hard,r.hardDetail,(r.need||[]).join('; '),r.sleep,r.tomorrow,r.worry,r.parentNote]);
+  offerFile('HeartKidz-export-'+todayKey()+'.csv','﻿'+[head,...rows].map(r=>r.map(q).join(';')).join('\n'),'Export');
+}
+function convert(inc){
+  if(inc&&inc.app==='HeartKidz'&&inc.settings&&inc.cks)return{settings:inc.settings,cks:inc.cks};
+  if(inc&&inc.version===1&&Array.isArray(inc.profiles)&&Array.isArray(inc.checkouts)){
+    const nl=NEEDS.map(n=>n[1]),cks={};
+    inc.checkouts.forEach(c=>{const a=c.answers||{},em=(c.emotions||[]);const r={childId:c.childId,date:c.date,emotions:em.filter(e=>EM[e]).slice(0,4),main:'',activities:[],best:a.best||'',hard:a.hard||'',hardDetail:a.hardDetail||'',need:em.filter(e=>nl.includes(e)),sleep:'',tomorrow:a.tomorrow||'',worry:'',completedAt:c.completedAt||''};r.main=r.emotions[0]||'';cks[key(r.childId,r.date)]=r});
+    return{settings:{profiles:inc.profiles.slice(0,2).map((p,i)=>({id:p.id||'child'+(i+1),name:p.name||'Kind '+(i+1),age:p.age==='5-7'?'5-7':'8-12',av:p.avatar||AVS[i]})),pin:S.settings.pin},cks};
+  }
+  return null;
+}
+function replaceAll(n){S=n;cache()}
+
+/* ---------- demo data ---------- */
+function makeDemo(){
+  let seed=20261120;const r=()=>(seed=seed*16807%2147483647)/2147483647;const pick=a=>a[Math.floor(r()*a.length)];
+  const ps=JSON.parse(JSON.stringify(S.settings.profiles)),cks={},t=todayKey();
+  const best={0:['Met Fleur geturnd en ik kon de radslag!','Mijn tekening werd opgehangen in de klas','Samen pannenkoeken gebakken','Ik had een 9 voor spelling','Met opa naar de bieb','Lachen met de hond','Een nieuw liedje geleerd op piano'],1:['Lego raket gebouwd','Op de trampoline gesprongen','Ijsje gegeten','Met Sam verstoppertje','Een kever gevonden','Papa deed gek']};
+  const hardD={0:['Ruzie met Lotte in de pauze','Ik werd niet gekozen bij gym','Toets was moeilijk','Mijn broertje pakte mijn spullen'],1:['Ik moest stoppen met de tablet','Ik viel van mijn fiets','Iemand pakte mijn bal','Ik wilde niet naar school']};
+  const tom={0:['Zwemles!','Spelen bij Fleur','Knutselen op school','Naar oma'],1:['Gymles','Pannenkoeken','Met de trein','Naar de speeltuin']};
+  ps.forEach((p,ci)=>{
+    let prevHard=false;
+    for(let n=41;n>=0;n--){
+      const d=addDays(t,-n),w=wdi(d);
+      if(n===0&&ci===1)continue;
+      if(r()<.1){prevHard=false;continue}
+      const acts=[];let v=ci===0?.55:.35;
+      if(w<5)acts.push('school');
+      if(ci===0&&(w===1||w===3||w===5)&&r()<.9){acts.push('sport');v+=.9}
+      if(ci===1&&w===5&&r()<.8){acts.push('sport');v+=.6}
+      if(r()<.38){acts.push('buiten');v+=.35}
+      if(r()<.3){acts.push('vrienden');v+=.55}
+      if(w===6&&r()<.6){acts.push('familie');v+=.4}
+      if(ci===1&&r()<.4){acts.push('scherm');v-=1}
+      if(ci===0&&r()<.15){acts.push('scherm');v-=.3}
+      if(r()<.12){acts.push('ruzie');v-=1.5}
+      if(w>=5&&r()<.5)acts.push('thuis');
+      if(ci===0&&r()<.25){acts.push('creatief');v+=.3}
+      if(ci===1&&w===0)v-=1.1;
+      if(ci===0&&w===0)v-=.35;
+      const sleep=prevHard?(r()<.55?'Slecht':r()<.6?'Gaat wel':'Goed'):(r()<.72?'Goed':r()<.7?'Gaat wel':'Slecht');
+      if(sleep==='Slecht')v-=.5;
+      v+=(r()-.5)*1.1;
+      const z=v>1.15?'Y':v>.3?'G':v>-.3?(r()<.5?'N':'G'):v>-1.1?'B':(ci===1&&acts.includes('scherm')?'R':(r()<.5?'R':'B'));
+      const pool=EMO.filter(e=>e.z===z&&(p.age!=='5-7'||e.y));
+      const main=pick(pool).l,emos=[main];
+      if(r()<.5){const e2=pick(EMO.filter(e=>(p.age!=='5-7'||e.y)&&e.l!==main&&(z==='Y'||z==='G'?(e.z==='Y'||e.z==='G'):(e.z!=='Y'))));emos.push(e2.l)}
+      if(sleep==='Slecht'&&!emos.includes('Moe'))emos.push('Moe');
+      const rec={childId:p.id,date:d,emotions:emos,main,activities:acts,best:r()<.85?pick(best[ci]):'',hard:'',hardDetail:'',need:[],sleep,tomorrow:r()<.6?pick(tom[ci]):'',worry:'',completedAt:d+'T19:30:00'};
+      const sc=score(rec);
+      rec.hard=r()<.08?'Vertel ik liever niet':sc<-.6?'Ja, best wel':sc<.3?'Een klein beetje':'Nee, eigenlijk niet';
+      if(rec.hard==='Ja, best wel'||rec.hard==='Een klein beetje')rec.hardDetail=r()<.7?pick(hardD[ci]):'';
+      rec.need=sc<-.3?[ci===0?(r()<.7?'Iemand om mee te praten':'Even rust'):(r()<.6?'Een knuffel':'Even rust')]:['Niets bijzonders'];
+      if(ci===0&&n%9===3)rec.worry='Spreekbeurt volgende week';
+      prevHard=sc<-.4;
+      cks[key(p.id,d)]=rec;
+    }
+  });
+  return{settings:{profiles:ps,pin:null},cks};
+}
+
+/* ---------- events ---------- */
+const A={
+  go:b=>go(b.dataset.s),goParent:()=>go('parent'),
+  start:b=>startFlow(b.dataset.id),
+  stop:()=>{draft=null;go('home')},
+  pick:b=>pick(b.dataset.f,b.dataset.v),
+  main:b=>{draft.main=b.dataset.v;const y=window.scrollY;renderStep();window.scrollTo(0,y)},
+  next:()=>{if(step<STEPS.length-1){step++;renderStep();window.scrollTo(0,0)}else finish()},
+  prev:()=>{if(step>0){step--;renderStep();window.scrollTo(0,0)}},
+  breathe:()=>breathe(),
+  speak:b=>{if(!tts)return;tts.speak(b.dataset.t,{language:'nl'}).catch(()=>{})},
+  mic:b=>{if(!dict)return;
+    if(b.classList.contains('live')){d_stop();return}
+    micTarget=b.dataset.target;
+    dict.start().catch(e=>{if(e&&e.code==='not_granted'){dict=null;document.querySelectorAll('[data-act=mic]').forEach(x=>x.remove())}});
+  },
+  mineKid:b=>{mineKid=b.dataset.id||null;mineDay=null;renderMine();window.scrollTo(0,0)},
+  mineDay:b=>{mineDay=b.dataset.d||null;renderMine();window.scrollTo(0,0)},
+  unlock:()=>{if($('#pinIn').value===S.settings.pin){parentOpen=true;renderParent()}else{toast('Deze code klopt niet');$('#pinIn').value=''}},
+  pinCreate:()=>{const a=$('#pinA').value,b=$('#pinB').value;if(!/^\d{4,8}$/.test(a)){toast('Kies 4 tot 8 cijfers');return}if(a!==b){toast('De codes zijn niet gelijk');return}S.settings.pin=a;saveSettings();parentOpen=true;renderParent()},
+  forgot:async()=>{const x=11+Math.floor(Math.random()*9),y=6+Math.floor(Math.random()*4);const r=await modal({title:'Code vergeten',body:`Ben je een volwassene? Hoeveel is ${x} × ${y}? Daarna kies je een nieuwe code.`,ok:'Controleren',cancel:'Annuleren',input:{type:'number',mode:'numeric'}});if(!r.ok)return;if(+r.value!==x*y){toast('Dat klopt niet');return}S.settings.pin=null;saveSettings();renderParent()},
+  lock:()=>{parentOpen=false;if(DEMO)stopDemo();go('home')},
+  pTab:b=>{pTab=b.dataset.v;renderParent()},
+  pKid:b=>{pKid=b.dataset.v;renderParent()},
+  pPer:b=>{pPer=b.dataset.v==='all'?'all':+b.dataset.v;renderParent()},
+  saveNote:b=>{const k=b.dataset.k,r=D().cks[k];if(!r)return;r.parentNote=$('#n_'+CSS.escape(k)).value.trim();saveRec(r);toast('Notitie bewaard')},
+  delRec:async b=>{const r=await modal({title:'Deze dag verwijderen?',body:'Dit kan niet ongedaan worden gemaakt.',ok:'Verwijderen',cancel:'Annuleren',danger:true});if(r.ok){delRec(b.dataset.k);renderParent()}},
+  saveProfiles:()=>{D().settings.profiles.forEach((p,i)=>{p.name=$('#nm'+i).value.trim()||'Kind '+(i+1);p.age=$('#ag'+i).value;p.av=$('#av'+i).value});saveSettings();toast('Opgeslagen');renderParent()},
+  savePin:()=>{const v=$('#newPin').value;if(!/^\d{4,8}$/.test(v)){toast('Kies 4 tot 8 cijfers');return}if(DEMO){toast('In de voorbeeldmodus wordt niets bewaard');return}S.settings.pin=v;saveSettings();$('#newPin').value='';toast('Oudercode gewijzigd')},
+  backup:()=>backup(),csv:()=>csv(),
+  restore:()=>$('#importFile').click(),
+  wipe:async()=>{if(DEMO){toast('Stop eerst de voorbeeldmodus');return}const r=await modal({title:'Alles verwijderen?',body:'Typ <b>WISSEN</b> om alle HeartKidz-gegevens te verwijderen. Zonder back-up is dit niet terug te halen.',ok:'Verwijderen',cancel:'Annuleren',danger:true,input:{ph:'WISSEN'}});if(!r.ok||(r.value||'').trim().toUpperCase()!=='WISSEN')return;
+    S={settings:defSettings(),cks:{}};try{localStorage.removeItem(LS)}catch(e){}parentOpen=false;go('home');toast('Alles is verwijderd')},
+  demoOn:()=>{DEMO=makeDemo();$('#demoBar').classList.remove('hide');pTab='overview';pKid='all';pPer=30;go('parent')},
+  demoOff:()=>{stopDemo();go(screen==='flow'||screen==='done'?'home':screen)},
+  mOk:()=>closeModal(true),mNo:()=>closeModal(false),
+};
+function stopDemo(){DEMO=null;parentOpen=false;mineKid=null;$('#demoBar').classList.add('hide')}
+function d_stop(){if(dict)dict.stop().catch(()=>{})}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=A[b.dataset.act];if(f)f(b)});
+document.addEventListener('input',e=>{const f=e.target.dataset&&e.target.dataset.f;if(f&&draft)draft[f]=e.target.value});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='pinIn')A.unlock();if(e.key==='Enter'&&e.target.id==='mInput')closeModal(true);if(e.key==='Escape'&&modalRes)closeModal(false)});
+$('#importFile').addEventListener('change',ev=>{const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=async()=>{let n=null;try{n=convert(JSON.parse(rd.result))}catch(e){}ev.target.value='';if(!n){toast('Dit is geen geldige HeartKidz- of Daglicht-back-up');return}
+  const r=await modal({title:'Back-up terugzetten?',body:`Deze back-up bevat ${Object.keys(n.cks).length} dagen en vervangt alle huidige gegevens.`,ok:'Terugzetten',cancel:'Annuleren'});if(!r.ok)return;if(DEMO)stopDemo();replaceAll(n);toast('Back-up teruggezet');go('parent')};rd.readAsText(f)});
+
+/* ---------- boot ---------- */
+function start(h){
+  scene();renderHome();
+  if(h&&h.draft&&h.screen==='flow'&&prof(h.draft.childId)){draft=h.draft;step=Math.min(h.step||0,STEPS.length-1);go('flow');renderStep()}
+  if(window.claude&&window.claude.use){
+    window.claude.use('downloads').then(x=>{dl=x}).catch(()=>{});
+    window.claude.use('tts').then(x=>{tts=x;if(screen==='flow')renderStep()}).catch(()=>{});
+    window.claude.use('dictation').then(x=>{if(!x)return;dict=x;
+      x.onFinal(({text})=>{const el=micTarget&&document.getElementById(micTarget);if(!el||!text)return;el.value=(el.value?el.value.replace(/\s*$/,' '):'')+text;if(draft&&el.dataset.f)draft[el.dataset.f]=el.value});
+      x.onState(({state})=>{document.querySelectorAll('[data-act=mic]').forEach(b=>{const on=state==='listening'&&b.dataset.target===micTarget;b.classList.toggle('live',on);b.querySelector('span').textContent=on?'Stop':'Inspreken'})});
+      if(screen==='flow')renderStep()}).catch(()=>{});
+  }
+  if(window.claude&&window.claude.hot&&window.claude.hot.snapshot)window.claude.hot.snapshot(()=>({screen,draft,step}));
+}
+if(window.claude&&window.claude.hot&&window.claude.hot.ready)window.claude.hot.ready(start);else start((window.claude&&window.claude.hot&&window.claude.hot.data)||{});
+}
+</script>
+</body>
+</html>
