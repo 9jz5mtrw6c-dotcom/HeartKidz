@@ -26,7 +26,7 @@
 --ink:light-dark(#2b2238,#f4eefa);--muted:light-dark(#6d6479,#b6acc3);--line:light-dark(#ece2da,#3a3147);
 --heart:light-dark(#e2475b,#ff6b7d);--night:light-dark(#2e2a6e,#100d22);
 --c1:light-dark(#7a4fc9,#9576e0);--c2:light-dark(#00948c,#1fa5a8);
---zY:light-dark(#d99a00,#c8941a);--zG:light-dark(#2f9e6a,#36a872);--zB:light-dark(#3b78d0,#4f86dc);--zR:light-dark(#d9473f,#e05c52);--zN:light-dark(#a39bae,#7d7589)}
+--zY:light-dark(#d99a00,#c8941a);--zG:light-dark(#2f9e6a,#36a872);--zB:light-dark(#3b78d0,#4f86dc);--zR:light-dark(#d9473f,#e05c52);--zN:light-dark(#a39bae,#7d7589);--zO:light-dark(#e8822a,#f0954a);--zL:light-dark(#8fbcef,#6f9fd8)}
 :root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
 *{box-sizing:border-box;min-width:0}
 html{-webkit-text-size-adjust:100%}
@@ -156,6 +156,12 @@ details.day .in{padding:0 14px 14px}
 .ov .box{background:var(--paper);border-radius:22px;padding:20px;width:min(420px,100%);max-height:90vh;overflow:auto}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-weight:700;z-index:60;max-width:90vw}
 .hide{display:none!important}
+.ns .em{font-size:.72rem;text-align:center;line-height:1.1;overflow:hidden}
+.kid{cursor:default}.kid .kb{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kid .kb button{border:0;border-radius:12px;min-height:44px;font-weight:800;background:var(--soft);color:var(--ink);font-size:.9rem}
+.kid .kb button.pri{background:var(--heart);color:#fff}
+.kid .kb button.dn{background:color-mix(in oklab,var(--zG) 18%,var(--paper))}
+.envt{width:100%;border-collapse:collapse;font-size:.9rem}.envt td,.envt th{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left}.envt .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .ns{display:grid;gap:3px;align-items:center}
 .ns .lb{font-size:.78rem;font-weight:800;color:var(--muted);white-space:nowrap}
 .ns .cl{aspect-ratio:1;border-radius:4px;border:0;padding:0;background:var(--z,var(--soft));max-height:26px;width:100%}
@@ -228,6 +234,7 @@ input[type=date]{width:100%;font-size:16px;border:1.5px solid var(--line);border
   <div class="acts" id="stepActs"></div>
 </section>
 
+<section id="am" class="screen"><div id="amBox"></div></section>
 <section id="done" class="screen"><div class="card done" id="doneBox"></div></section>
 
 <section id="help" class="screen"><div id="helpBox"></div></section>
@@ -278,8 +285,15 @@ const MIND=[['😌','Nee, mijn hoofd is rustig'],['🤔','Een beetje'],['🌀','
 const BEHAV=['Driftbui','Teruggetrokken','Huilbui','Bedplassen','Kleiner gedrag','Moeilijk afscheid','Geen bijzonderheden'];
 const APPET=['Minder dan normaal','Normaal','Meer dan normaal'],BEDT=['Op tijd','Later dan normaal'];
 const PWHO=['Mama','Papa'],PSCALE=['Heel zwaar','Zwaar','Gaat wel','Goed','Heel goed'],PEN=['Weinig','Gemiddeld','Veel'];
-const NQ=[['eigen','Ging in eigen bed slapen'],['snel','Ging snel slapen'],['kwam','Kwam bij ons op de kamer'],['heel','Sliep de hele nacht bij ons op de kamer']];
-const NOUT={G:'Hele nacht in eigen bed',Y:'Kwam bij ons op de kamer',B:'Sliep de hele nacht bij ons',N:'Niet in eigen bed begonnen'};
+const FELL=[['🛏️','Eigen bed'],['🧺','Matrasje'],['💞','In bed bij mama']];
+const NIGHT=[['G','Hele nacht in eigen bed'],['Y','Halverwege de nacht op matrasje'],['O','Halverwege de nacht bij papa en mama'],['L','Hele nacht op matrasje'],['B','Hele nacht bij papa en mama']];
+const NOUT={...Object.fromEntries(NIGHT),N:'Nacht niet ingevuld'};
+const ENERGY=[['🔋','Heel veel'],['🙂','Genoeg'],['🪫','Weinig'],['😴','Op']],ENV={'Heel veel':4,'Genoeg':3,'Weinig':2,'Op':1};
+const AMD=[['🌈','Nee'],['🙂','Een beetje'],['😟','Ja']],AML=[['🤩','Ja!'],['🙂','Een beetje'],['😐','Niet echt']];
+const MOONL=['Nieuwe maan','Wassende sikkel','Eerste kwartier','Wassende maan','Volle maan','Afnemende maan','Laatste kwartier','Afnemende sikkel'],MOONE=['🌑','🌒','🌓','🌔','🌕','🌖','🌗','🌘'];
+function moon(d){const jd=Date.parse(d+'T21:00:00Z')/864e5+2440587.5;let ph=((jd-2451550.1)/29.530588853)%1;if(ph<0)ph+=1;const i=Math.round(ph*8)%8;return{ph,i,e:MOONE[i],l:MOONL[i],full:Math.abs(ph-.5)*29.53<=1.5,nw:Math.min(ph,1-ph)*29.53<=1.5}}
+function wxInfo(c){c=+c;return c===0?['☀️','Zonnig']:c<=2?['🌤️','Licht bewolkt']:c===3?['☁️','Bewolkt']:c<=48?['🌫️','Mist']:c<=57?['🌦️','Motregen']:c<=67?['🌧️','Regen']:c<=77?['🌨️','Sneeuw']:c<=82?['🌧️','Buien']:c<=86?['🌨️','Sneeuwbuien']:['⛈️','Onweer']}
+const wxOf=d=>(D().wx||{})[d];
 const TALK=[['🙋','Ja, graag nu'],['⏰','Straks'],['👍','Nee, hoeft niet']];
 const BODY=[['🧠','Hoofd'],['💧','Ogen'],['🗣️','Keel'],['💓','Borst'],['🌀','Buik'],['✊','Handen'],['🦵','Benen'],['⚡','Overal'],['🤷','Weet ik niet']];
 const SIZES=['Klein beetje','Best wel','Groot','Heel groot','Mega groot'];
@@ -338,7 +352,7 @@ const kc=i=>i===0?'var(--c1)':'var(--c2)';
 const kcOf=id=>kc(D().settings.profiles.findIndex(p=>p.id===id));
 let canStore=true;try{localStorage.setItem('hk_test','1');localStorage.removeItem('hk_test')}catch(e){canStore=false}
 try{const v=JSON.parse(localStorage.getItem(LS));if(v&&v.settings&&v.cks)S=v}catch(e){}
-if(!S.events)S.events={};if(!S.moments)S.moments={};if(!S.nights)S.nights={};if(!S.plog)S.plog={};if(!S.pci)S.pci={};
+if(!S.events)S.events={};if(!S.moments)S.moments={};if(!S.nights)S.nights={};if(!S.am)S.am={};if(!S.wx)S.wx={};if(!S.plog)S.plog={};if(!S.pci)S.pci={};
 function cache(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){if(canStore){canStore=false;toast('Opslaan op dit apparaat lukt niet. Maak een back-up.')}}}
 function tomb(k){if(DEMO)return;S.del=S.del||{};S.del[k]=Date.now()}
 function saveRec(r){const k=key(r.childId,r.date);r.upd=Date.now();D().cks[k]=r;if(DEMO)return;cache()}
@@ -359,6 +373,7 @@ function mergeInto(cur,inc,tk,delC,delI,st){
 function mergeAll(n){
   const st={add:0,upd:0,del:0,skip:0},dC=S.del||{},dI=n.del||{},id=k=>k;
   ['cks','nights','plog','pci'].forEach(f=>{S[f]=S[f]||{};mergeInto(S[f],n[f],id,dC,dI,st)});
+  S.am=S.am||{};mergeInto(S.am,n.am,id,dC,dI,st);S.wx={...(n.wx||{}),...(S.wx||{})};if(!S.settings.loc&&n.settings&&n.settings.loc)S.settings.loc=n.settings.loc;
   S.events=S.events||{};mergeInto(S.events,n.events,k=>'ev:'+k,dC,dI,st);
   S.moments=S.moments||{};mergeInto(S.moments,n.moments,k=>'m:'+k,dC,dI,st);
   S.del={...dC};Object.entries(dI).forEach(([t,ts])=>{if(!S.del[t]||S.del[t]<ts)S.del[t]=ts});
@@ -367,12 +382,15 @@ function mergeAll(n){
 }
 function saveSettings(){if(DEMO)return;cache()}
 function saveEvents(){if(DEMO)return;cache()}
-const nk=(c,d)=>`n_${c}_${d}`,pk=(c,d)=>`p_${c}_${d}`,ok=(w,d)=>`o_${w}_${d}`;
-const nightOut=n=>!n?null:n.heel?'B':n.kwam?'Y':n.eigen?'G':'N';
+const ak=(c,d)=>`a_${c}_${d}`,nk=(c,d)=>`n_${c}_${d}`,pk=(c,d)=>`p_${c}_${d}`,ok=(w,d)=>`o_${w}_${d}`;
+const nightOut=n=>{if(!n)return null;if(n.night){const f=NIGHT.find(x=>x[1]===n.night);return f?f[0]:'N'}if('eigen'in n||'kwam'in n||'heel'in n)return n.heel?'B':n.kwam?'O':n.eigen?'G':'N';return'N'};
+const fellOf=n=>!n?'':n.fell||(n.eigen?'Eigen bed':n.heel?'In bed bij mama':'');
+const cameOut=n=>['Y','O','L','B'].includes(nightOut(n));
+const kidSleep=(c,d)=>((D().am||{})[ak(c,d)]||{}).sleep||(D().cks[key(c,d)]||{}).sleep||'';
 const nightDefault=()=>{const d=new Date();return d.getHours()<16?addDays(dk(d),-1):dk(d)};
 function nightsAn(cid,from){
   const ns=Object.values(D().nights||{}).filter(n=>n.childId===cid&&(!from||n.date>=from)).sort(byDate);
-  const sh=(a,f)=>a.length?a.filter(f).length/a.length:null,own=n=>nightOut(n)==='G',came=n=>n.kwam||n.heel;
+  const sh=(a,f)=>a.length?a.filter(f).length/a.length:null,own=n=>nightOut(n)==='G',came=cameOut;
   const withC=[],noC=[],hard=[],easy=[],big=[],calm=[];
   ns.forEach(n=>{const r=D().cks[key(cid,n.date)],sc=r?score(r):null;(r?withC:noC).push(n);if(sc!==null)(sc<-.4?hard:easy).push(n);(momList().some(m=>m.childId===cid&&m.date===n.date)?big:calm).push(n)});
   const wk={};ns.forEach(n=>{const w=addDays(n.date,-wdi(n.date));(wk[w]=wk[w]||[]).push(n)});
@@ -381,10 +399,10 @@ function nightsAn(cid,from){
   const cmp=[];const nm=prof(cid).name;
   if(ns.length>=6){const x=sh(a1,own),y=sh(a2,own);if(y-x>=.2)cmp.push({t:'zG',x:`Steeds vaker de hele nacht in eigen bed: van ${pct(x)} in de eerste helft van deze periode naar ${pct(y)} in de tweede helft.`});else if(x-y>=.2)cmp.push({t:'zB',x:`Minder vaak de hele nacht in eigen bed: van ${pct(x)} naar ${pct(y)} in deze periode.`})}
   if(withC.length>=3&&noC.length>=3){const x=sh(withC,own),y=sh(noC,own);if(Math.abs(x-y)>=.15)cmp.push({t:x>y?'zG':'zB',x:`Na een avond mét check-out sliep ${nm} ${pct(x)} van de nachten de hele nacht in eigen bed, zonder check-out ${pct(y)}.`})}
-  if(hard.length>=3&&easy.length>=3){const x=sh(hard,came),y=sh(easy,came);if(x-y>=.15)cmp.push({t:'zB',x:`Na een lastige dag kwam ${nm} vaker naar jullie kamer: ${pct(x)} van de nachten, tegenover ${pct(y)} na een fijne dag.`});else if(y-x>=.15)cmp.push({t:'zG',x:`Ook na lastige dagen bleef ${nm} meestal in eigen bed.`})}
-  if(big.length>=3&&calm.length>=3){const x=sh(big,came),y=sh(calm,came);if(x-y>=.15)cmp.push({t:'zB',x:`Op dagen met een groot gevoel kwam ${nm} ${pct(x)} van de nachten naar jullie kamer, op andere dagen ${pct(y)}.`})}
+  if(hard.length>=3&&easy.length>=3){const x=sh(hard,came),y=sh(easy,came);if(x-y>=.15)cmp.push({t:'zB',x:`Na een lastige dag sliep ${nm} vaker niet de hele nacht in eigen bed: ${pct(x)} van de nachten, tegenover ${pct(y)} na een fijne dag.`});else if(y-x>=.15)cmp.push({t:'zG',x:`Ook na lastige dagen bleef ${nm} meestal in eigen bed.`})}
+  if(big.length>=3&&calm.length>=3){const x=sh(big,came),y=sh(calm,came);if(x-y>=.15)cmp.push({t:'zB',x:`Na een dag met een groot gevoel sliep ${nm} ${pct(x)} van de nachten niet de hele nacht in eigen bed, na andere dagen ${pct(y)}.`})}
   if(hard.length>=3&&easy.length>=3){const x=sh(hard,n=>n.snel),y=sh(easy,n=>n.snel);if(y-x>=.2)cmp.push({t:'zB',x:`Na een fijne dag ging ${nm} vaker snel slapen (${pct(y)}) dan na een lastige dag (${pct(x)}).`})}
-  return{ns,n:ns.length,own:sh(ns,own),inBed:sh(ns,n=>n.eigen),snel:sh(ns,n=>n.snel),kwam:sh(ns,n=>n.kwam&&!n.heel),heel:sh(ns,n=>n.heel),weeks,cmp,withC,noC};
+  const fe=ns.filter(n=>fellOf(n));return{ns,n:ns.length,own:sh(ns,own),inBed:sh(fe,n=>fellOf(n)==='Eigen bed'),fellMama:sh(fe,n=>fellOf(n)==='In bed bij mama'),snel:sh(ns,n=>n.snel),par:sh(ns,n=>['O','B'].includes(nightOut(n))),mat:sh(ns,n=>['Y','L'].includes(nightOut(n))),weeks,cmp,withC,noC};
 }
 function extra(cid,from,rs){
   const nm=prof(cid).name,ins=[],sh=(a,f)=>a.length?a.filter(f).length/a.length:null;
@@ -401,9 +419,9 @@ function extra(cid,from,rs){
   if(nb.length>=2){const wdT=cnt(nb.map(r=>WDL[wdi(r.date)]))[0];ins.push({t:'zB',x:`${nm} voelde zich ${nb.length}× niet echt erbij horen${wdT&&wdT[1]>=2?', vaak op '+wdT[0]:''}. Vraag eens rustig hoe het gaat met vriendjes en in de klas.`})}
   const alone=rs.filter(r=>(r.social||[]).length===1&&r.social[0]==='Alleen').length;if(alone>=3)ins.push({t:'zB',x:`${nm} gaf ${alone}× aan de dag vooral alleen door te brengen.`});
   // piekeren
-  const mr=rs.filter(r=>r.mind),busy=r=>r.mind&&r.mind!==MIND[0][1],came=n=>n&&(n.kwam||n.heel);
+  const mr=rs.filter(r=>r.mind),busy=r=>r.mind&&r.mind!==MIND[0][1],came=n=>n&&cameOut(n);
   const mn=mr.map(r=>({b:busy(r),n:(D().nights||{})[nk(cid,r.date)]})).filter(x=>x.n),mb=mn.filter(x=>x.b),mc=mn.filter(x=>!x.b);
-  if(mb.length>=3&&mc.length>=3&&sh(mb,x=>came(x.n))-sh(mc,x=>came(x.n))>=.15)ins.push({t:'zB',x:`Na avonden met piekeren kwam ${nm} vaker naar jullie kamer (${pct(sh(mb,x=>came(x.n)))}) dan na een rustig hoofd (${pct(sh(mc,x=>came(x.n)))}). Samen de zorgen opschrijven of ‘in een doosje stoppen’ voor het slapen kan helpen.`});
+  if(mb.length>=3&&mc.length>=3&&sh(mb,x=>came(x.n))-sh(mc,x=>came(x.n))>=.15)ins.push({t:'zB',x:`Na avonden met piekeren sliep ${nm} vaker niet de hele nacht in eigen bed (${pct(sh(mb,x=>came(x.n)))}) dan na een rustig hoofd (${pct(sh(mc,x=>came(x.n)))}). Samen de zorgen opschrijven of ‘in een doosje stoppen’ voor het slapen kan helpen.`});
   else{const many=mr.filter(r=>r.mind==='Ja, heel veel').length;if(many>=3)ins.push({t:'zY',x:`${nm} gaf ${many}× aan dat er ‘heel veel’ in het hoofd zat voor het slapen.`})}
   // tegenop
   const zr=rs.filter(r=>r.morrow),dr=zr.filter(r=>r.morrow==='Ik zie er tegenop');
@@ -428,7 +446,34 @@ function extra(cid,from,rs){
   const less=pl.filter(x=>x.app==='Minder dan normaal');if(less.length>=3)ins.push({t:'zY',x:`${nm} at ${less.length}× minder dan normaal.`});
   const lt=pl.filter(x=>x.bed),late=lt.filter(x=>x.bed==='Later dan normaal').map(x=>(D().nights||{})[nk(cid,x.date)]).filter(Boolean),ont=lt.filter(x=>x.bed==='Op tijd').map(x=>(D().nights||{})[nk(cid,x.date)]).filter(Boolean);
   if(late.length>=3&&ont.length>=3){const a=sh(late,n=>nightOut(n)==='G'),b=sh(ont,n=>nightOut(n)==='G');if(b-a>=.2)ins.push({t:'zB',x:`Na een late bedtijd sliep ${nm} minder vaak de hele nacht in eigen bed (${pct(a)} tegenover ${pct(b)} bij een gewone bedtijd).`})}
-  return{ins,painPct:pr.length?pd.length/pr.length:null,painTop,belongPct:sh(br,r=>r.belong==='Ja, helemaal'),nb:nb.length,mindPct:sh(mr,busy),dreadPct:sh(zr,r=>r.morrow==='Ik zie er tegenop'),vocab,uniq,recov,nrec:rm.length,behav,pl,less:less.length,late:late.length};
+  const amr=Object.values(D().am||{}).filter(a=>a.childId===cid&&(!from||a.date>=from)).sort(byDate);
+  const eAM=mean(amr.map(a=>ENV[a.energy]).filter(Boolean)),ePM=mean(rs.map(r=>ENV[r.energy]).filter(Boolean));
+  const dj=amr.map(a=>{const r=D().cks[key(cid,a.date)],v=r?score(r):null;return v===null?null:{d:a.dread&&a.dread!=='Nee',h:v<-.4}}).filter(Boolean),dy=dj.filter(x=>x.d),dn=dj.filter(x=>!x.d);
+  if(dy.length>=3&&dn.length>=3){const a=sh(dy,x=>x.h),b=sh(dn,x=>x.h);if(a-b>=.2)ins.push({t:'zB',x:`Als ${nm} 's ochtends ergens tegenop zag, werd het vaker een lastige dag (${pct(a)} tegenover ${pct(b)}).`});else if(a<=.34)ins.push({t:'zG',x:`Als ${nm} 's ochtends ergens tegenop ziet, wordt het meestal tóch een prima dag (${pct(1-a)}). Fijn om 's avonds samen op terug te kijken: “het viel mee, hè?”`})}
+  const wy=cnt(amr.filter(a=>a.dread&&a.dread!=='Nee').flatMap(a=>a.why||[]))[0];if(wy&&wy[1]>=2)ins.push({t:'zY',x:`'s Ochtends ziet ${nm} het vaakst op tegen: ${wy[0].toLowerCase()} (${wy[1]}×).`});
+  const en=amr.map(a=>({e:ENV[a.energy],o:nightOut((D().nights||{})[nk(cid,addDays(a.date,-1))])})).filter(x=>x.e&&x.o&&x.o!=='N'),eo=en.filter(x=>x.o==='G'),ex=en.filter(x=>x.o!=='G');
+  if(eo.length>=3&&ex.length>=3&&mean(eo.map(x=>x.e))-mean(ex.map(x=>x.e))>=.5)ins.push({t:'zB',x:`Na een nacht niet in eigen bed heeft ${nm} 's ochtends minder energie (${mean(ex.map(x=>x.e)).toFixed(1).replace('.',',')} tegenover ${mean(eo.map(x=>x.e)).toFixed(1).replace('.',',')} van 4).`});
+  const lowE=amr.filter(a=>a.date>addDays(todayKey(),-7)&&ENV[a.energy]&&ENV[a.energy]<=2).length;if(lowE>=3)ins.push({t:'zY',x:`${nm} begon de afgelopen week ${lowE}× met weinig of geen energie.`});
+  return{amr,eAM,ePM,amDread:sh(amr.filter(a=>a.dread),a=>a.dread!=='Nee'),ins,painPct:pr.length?pd.length/pr.length:null,painTop,belongPct:sh(br,r=>r.belong==='Ja, helemaal'),nb:nb.length,mindPct:sh(mr,busy),dreadPct:sh(zr,r=>r.morrow==='Ik zie er tegenop'),vocab,uniq,recov,nrec:rm.length,behav,pl,less:less.length,late:late.length};
+}
+function envAn(cid,from){
+  const nm=prof(cid).name,rs=childRecs(cid).filter(r=>!from||r.date>=from).map(r=>({d:r.date,s:score(r)})).filter(x=>x.s!==null),ins=[],rows=[];
+  const cmpS=(lab,fa,fb,la,lb)=>{const a=rs.filter(x=>fa(x.d)),b=rs.filter(x=>fb(x.d));if(!a.length&&!b.length)return;const ma=mean(a.map(x=>x.s)),mb=mean(b.map(x=>x.s));rows.push({lab,la,lb,ma,mb,na:a.length,nb:b.length});return a.length>=4&&b.length>=4?ma-mb:null};
+  const W=d=>wxOf(d);
+  const dr=cmpS('Regen',d=>W(d)&&W(d).p>=2,d=>W(d)&&W(d).p<.5,'regendagen','droge dagen');
+  if(dr!=null&&Math.abs(dr)>=.5)ins.push({t:dr<0?'zB':'zG',x:dr<0?`Op regenachtige dagen is ${nm} gemiddeld minder goed gestemd (${fmt(rows[rows.length-1].ma)} tegenover ${fmt(rows[rows.length-1].mb)} op droge dagen). Even naar buiten in regenkleding of samen bewegen kan helpen.`:`Op regenachtige dagen is ${nm} juist beter gestemd dan op droge dagen.`});
+  const ds=cmpS('Zon',d=>W(d)&&W(d).sun>=4,d=>W(d)&&W(d).sun<1,'zonnige dagen','grijze dagen');
+  if(ds!=null&&Math.abs(ds)>=.5)ins.push({t:ds>0?'zG':'zB',x:ds>0?`Op zonnige dagen voelt ${nm} zich duidelijk fijner (${fmt(rows[rows.length-1].ma)} tegenover ${fmt(rows[rows.length-1].mb)} op grijze dagen).`:`Op zonnige dagen is ${nm} juist minder goed gestemd dan op grijze dagen.`});
+  const dc=cmpS('Kou',d=>W(d)&&W(d).tx<6,d=>W(d)&&W(d).tx>=10,'koude dagen (onder 6°)','zachte dagen (10° of meer)');
+  if(dc!=null&&Math.abs(dc)>=.5)ins.push({t:'zN',x:`Op koude dagen is ${nm} ${dc<0?'minder':'beter'} gestemd dan op zachte dagen (${fmt(rows[rows.length-1].ma)} tegenover ${fmt(rows[rows.length-1].mb)}).`});
+  const dm=cmpS('Maan',d=>moon(d).full,d=>!moon(d).full,'rond volle maan','overige dagen');
+  const ns=Object.values(D().nights||{}).filter(n=>n.childId===cid&&(!from||n.date>=from)&&nightOut(n)!=='N'),nf=ns.filter(n=>moon(n.date).full),no=ns.filter(n=>!moon(n.date).full);
+  const of=nf.length?nf.filter(n=>nightOut(n)==='G').length/nf.length:null,oo=no.length?no.filter(n=>nightOut(n)==='G').length/no.length:null;
+  let moonTxt='';
+  if(dm!=null&&Math.abs(dm)>=.5)moonTxt=`Rond volle maan was ${nm} ${dm<0?'minder':'beter'} gestemd (${fmt(rows[rows.length-1].ma)} tegenover ${fmt(rows[rows.length-1].mb)}).`;
+  if(nf.length>=3&&no.length>=5&&Math.abs(of-oo)>=.2)moonTxt+=(moonTxt?' ':'')+`Rond volle maan sliep ${nm} ${pct(of)} van de nachten de hele nacht in eigen bed, op andere nachten ${pct(oo)}.`;
+  if(moonTxt)ins.push({t:'zN',x:moonTxt+' Dit kan goed toeval zijn: onderzoek vindt meestal geen duidelijk effect van de maan. Blijf het volgen.'});
+  return{ins,rows,moonOwn:[of,oo,nf.length,no.length],hasWx:rs.some(x=>W(x.d))};
 }
 function pciAn(from,ids){
   const es=Object.values(D().pci||{}).filter(x=>!from||x.date>=from);if(!es.length)return null;
@@ -482,13 +527,13 @@ function analyze(cid,from){
   const sc=rs.map(r=>({r,s:score(r)})).filter(x=>x.s!==null);
   const avg=mean(sc.map(x=>x.s));
   const hardN=sc.filter(x=>x.s<-.4).length;
-  const sl=rs.filter(r=>r.sleep),goodN=sl.filter(r=>r.sleep==='Goed').length;
+  const sdays=[...new Set([...rs.map(r=>r.date),...Object.values(D().am||{}).filter(a=>a.childId===cid&&(!from||a.date>=from)).map(a=>a.date)])],sl=sdays.map(d=>kidSleep(cid,d)).filter(Boolean),goodN=sl.filter(v=>v==='Goed').length;
   const zones={Y:0,G:0,B:0,R:0,N:0};rs.forEach(r=>{const z=zone(r);if(z)zones[z]++});
   const emo={};rs.forEach(r=>(r.emotions||[]).forEach(e=>{if(EM[e])emo[e]=(emo[e]||0)+1}));
   const wd=[0,1,2,3,4,5,6].map(()=>[]);sc.forEach(x=>wd[wdi(x.r.date)].push(x.s));
   const acts=ACT.map(a=>{const w=sc.filter(x=>(x.r.activities||[]).includes(a.k)).map(x=>x.s),wo=sc.filter(x=>!(x.r.activities||[]).includes(a.k)).map(x=>x.s);return{a,n:w.length,nwo:wo.length,w:mean(w),wo:mean(wo)}}).filter(x=>x.n>=3&&x.nwo>=3).map(x=>({...x,d:x.w-x.wo})).sort((a,b)=>Math.abs(b.d)-Math.abs(a.d));
   const byD=Object.fromEntries(all.map(r=>[r.date,r]));
-  const pairs=sc.map(x=>{const nx=byD[addDays(x.r.date,1)];return nx&&nx.sleep?{hard:x.s<-.4,good:nx.sleep==='Goed'?1:0}:null}).filter(Boolean);
+  const pairs=sc.map(x=>{const ns2=kidSleep(cid,addDays(x.r.date,1));return ns2?{hard:x.s<-.4,good:ns2==='Goed'?1:0}:null}).filter(Boolean);
   const ph=pairs.filter(q=>q.hard),pn=pairs.filter(q=>!q.hard);
   const needs={};rs.filter(r=>{const s=score(r);return(s!==null&&s<-.4)||r.hard==='Ja, best wel'}).forEach(r=>(r.need||[]).filter(n=>n!=='Niets bijzonders').forEach(n=>needs[n]=(needs[n]||0)+1));
   const l7=all.filter(r=>r.date>addDays(to,-7)),l7s=l7.map(score).filter(v=>v!==null);
@@ -521,8 +566,8 @@ function analyze(cid,from){
     const bt=tools.find(x=>x.n>=2&&x.d>=1.5);if(bt)ins.push({t:'zG',x:`Bij ${nm} helpt „${TL[bt.k].l.toLowerCase()}” goed: het gevoel wordt gemiddeld ${bt.d.toFixed(1).replace('.',',')} stappen kleiner.`});
   }
   evList().filter(e=>e.kids.includes(cid)&&e.start>to&&e.start<=addDays(to,7)).forEach(e=>{const n=diff(to,e.start);ins.push({t:'zY',x:`${n===1?'Morgen':'Over '+n+' dagen'}: „${e.title}”. Een goed moment om er samen even over te praten.`})});
-  const X=extra(cid,from,rs);if(sc.length>=3||X.pl.length)ins.push(...X.ins);
-  return{X,ms,trig,dd,tools,mhp,cid,p,nm,rs,n:rs.length,span,avg,hardN,hardPct:sc.length?hardN/sc.length:null,sleepPct:sl.length?goodN/sl.length:null,zones,emo,wd,acts,needs,ins,sc};
+  const X=extra(cid,from,rs);if(sc.length>=3||X.pl.length||X.amr.length)ins.push(...X.ins);const EN=envAn(cid,from);ins.push(...EN.ins);
+  return{EN,X,ms,trig,dd,tools,mhp,cid,p,nm,rs,n:rs.length,span,avg,hardN,hardPct:sc.length?hardN/sc.length:null,sleepPct:sl.length?goodN/sl.length:null,zones,emo,wd,acts,needs,ins,sc};
 }
 
 /* ---------- ui helpers ---------- */
@@ -544,7 +589,7 @@ function go(id){
   screen=id;document.body.classList.toggle('onhome',id==='home');
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));
   document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('on',b.dataset.s===id));
-  document.body.classList.toggle('flow',id==='flow'||id==='help');navDot();
+  document.body.classList.toggle('flow',id==='flow'||id==='help'||id==='am');navDot();
   if(id==='home')renderHome();if(id==='mine')renderMine();if(id==='parent')renderParent();
   window.scrollTo(0,0);
 }
@@ -568,7 +613,8 @@ function renderHome(){
   $('#kids').innerHTML=D().settings.profiles.map((p,i)=>{
     const done=D().cks[key(p.id,t)];
     const strip=[6,5,4,3,2,1,0].map(n=>{const d=addDays(t,-n),r=D().cks[key(p.id,d)];return heart(r&&zone(r),short(d)+(r?': '+ZONES[zone(r)||'N'].n:': niet ingevuld'))}).join('');
-    return`<button class="kid" style="--kc:${kc(i)}" data-act="start" data-id="${p.id}"><div class="av">${p.av}</div><strong>${esc(p.name)}</strong><span class="st">${done?'<b>Vandaag gedaan ✓</b> · aanpassen':'Start je check-out →'}</span><div class="strip" aria-label="Laatste 7 dagen">${strip}</div></button>`}).join('');
+    const amd=(D().am||{})[ak(p.id,t)],morning=new Date().getHours()<12;
+    return`<div class="kid" style="--kc:${kc(i)}"><div class="av">${p.av}</div><strong>${esc(p.name)}</strong><div class="kb"><button class="${amd?'dn':morning?'pri':''}" data-act="amStart" data-id="${p.id}">☀️ ${amd?'Ochtend ✓':'Ochtend'}</button><button class="${done?'dn':!morning?'pri':''}" data-act="start" data-id="${p.id}">🌙 ${done?'Avond ✓':'Avond'}</button></div><div class="strip" aria-label="Laatste 7 dagen">${strip}</div></div>`}).join('');
   const any=Object.keys(S.cks).length;
   if(!canStore&&!DEMO){$('#homeDemo').innerHTML='<h3>Opslaan lukt niet</h3><p class="muted small">Deze browser bewaart niets (bijvoorbeeld privé-modus). Open HeartKidz in een gewone browser op dit apparaat.</p>';return}
   $('#homeDemo').innerHTML=DEMO?`<h3>Voorbeeld actief</h3><p class="muted small">Alles wat je nu ziet en invult is nep en wordt niet bewaard.</p><button class="btn alt full" data-act="demoOff">Terug naar echte gegevens</button>`:
@@ -578,11 +624,11 @@ function renderHome(){
 /* ---------- check-out flow ---------- */
 const BASE=['emotions','activities','social','best','hard','need','pain','sleep','tomorrow'];let FS=BASE.slice();
 function supEmo(d){const n=(d.emotions||[]).filter(l=>EM[l]&&EM[l].v<=-1);if(!n.length)return null;return n.includes(d.main)?d.main:n.sort((a,b)=>EM[a].v-EM[b].v)[0]}
-function buildFS(){FS=BASE.slice();if(draft&&supEmo(draft))FS.splice(1,0,'support');const e=draft&&draft.evId&&D().events[draft.evId];if(e)FS.splice(FS.indexOf('tomorrow'),0,'event')}
+function buildFS(){FS=BASE.slice();if(draft&&((D().am||{})[ak(draft.childId,draft.date)]||{}).sleep)FS.splice(FS.indexOf('sleep'),1);if(draft&&supEmo(draft))FS.splice(1,0,'support');const e=draft&&draft.evId&&D().events[draft.evId];if(e)FS.splice(FS.indexOf('tomorrow'),0,'event')}
 let draft=null,step=0;
 function startFlow(id){
   const t=todayKey(),ex=D().cks[key(id,t)];
-  const blank={childId:id,date:t,emotions:[],main:'',activities:[],social:[],belong:'',best:'',hard:'',hardDetail:'',need:[],pain:[],sleep:'',morrow:'',dread:[],tomorrow:'',mind:'',worry:''};
+  const blank={childId:id,date:t,emotions:[],main:'',activities:[],social:[],belong:'',best:'',hard:'',hardDetail:'',need:[],pain:[],energy:'',sleep:'',morrow:'',dread:[],tomorrow:'',mind:'',worry:''};
   draft=ex?{...blank,...JSON.parse(JSON.stringify(ex))}:blank;
   const ev=kidEvalEvent(id,t);if(ev){draft.evId=ev.id;draft.evR='';draft.evT=''}
   buildFS();step=0;go('flow');renderStep();
@@ -605,7 +651,7 @@ function renderStep(){
     if(draft.hard==='Vertel ik liever niet')h+=`<p class="note">Dat is helemaal oké. Je hoeft niets te vertellen.</p>`}
   if(k==='social'){title=young?'Met wie heb je vandaag gespeeld?':'Met wie was je vandaag veel samen?';hint='Tik alles aan wat past.';
     h=`<div class="opts">${SOC.map(([e,l])=>opt('social',l,e,l,draft.social.includes(l))).join('')}</div><div class="zone" style="margin-top:20px">${young?'Hoorde je erbij?':'Voelde je je erbij horen?'}</div><div class="opts">${BEL.map(([e,l])=>opt('belong',l,e,l,draft.belong===l)).join('')}</div>`}
-  if(k==='pain'){title='Had je vandaag ergens pijn of last van?';hint=young?'Tik aan wat past.':'Soms zegt je lijf iets als je ergens mee zit.';h=`<div class="opts">${PAIN.map(([e,l])=>opt('pain',l,e,l,draft.pain.includes(l))).join('')}</div>`}
+  if(k==='pain'){title='Hoe voelt je lijf?';hint=young?'Tik aan wat past.':'Soms zegt je lijf iets als je ergens mee zit.';h=`<div class="zone" style="margin-top:0">Had je ergens pijn of last van?</div><div class="opts">${PAIN.map(([e,l])=>opt('pain',l,e,l,draft.pain.includes(l))).join('')}</div><div class="zone" style="margin-top:20px">Hoe is je energie nu?</div><div class="opts">${ENERGY.map(([e,l])=>opt('energy',l,e,l,draft.energy===l)).join('')}</div>`}
   if(k==='need'){title=draft.hard==='Nee, eigenlijk niet'?'Waar had je vandaag zin in?':'Wat had jou vandaag kunnen helpen?';hint='Kies wat past. Soms helpt het om te bedenken wat je nodig had.';h=`<div class="opts">${NEEDS.map(([e,l])=>opt('need',l,e,l,draft.need.includes(l))).join('')}</div>`}
   if(k==='sleep'){title='Hoe heb je vannacht geslapen?';hint='Denk aan afgelopen nacht. Werd je uitgerust wakker?';h=`<div class="opts">${SLEEP.map(([e,l])=>opt('sleep',l,e,l,draft.sleep===l)).join('')}</div>`}
   if(k==='support'){const se=supEmo(draft)||draft.main,e=EM[se];title='Wat goed dat je dat vertelt';hint='';
@@ -622,7 +668,7 @@ function renderStep(){
   $('#stepActs').innerHTML=`<button class="btn line" data-act="prev" ${step===0?'disabled':''}>Terug</button><button class="btn" data-act="next">${step===FS.length-1?'Dag afsluiten':'Verder'}</button>`;
 }
 function pick(f,v){
-  if(['hard','sleep','evR','belong','morrow','mind'].includes(f)){draft[f]=draft[f]===v?'':v}
+  if(['hard','sleep','evR','belong','morrow','mind','energy'].includes(f)){draft[f]=draft[f]===v?'':v}
   else{const a=draft[f];const i=a.indexOf(v);
     if(i>=0)a.splice(i,1);
     else{if(f==='emotions'&&a.length>=4){toast('Kies er maximaal 4');return}
@@ -645,6 +691,21 @@ function finish(){
 let breathT=null;
 function breathe(){const b=$('#breath');if(!b)return;clearInterval(breathT);b.classList.remove('go');void b.offsetWidth;b.classList.add('go');let n=0;const lines=['Adem in…','Adem uit…'];b.textContent=lines[0];
   breathT=setInterval(()=>{n++;if(n>=6||!document.body.contains(b)){clearInterval(breathT);if(b)b.textContent='Goed gedaan 💛';return}b.textContent=lines[n%2]},4000)}
+
+/* ---------- morning check-in ---------- */
+let AM=null;const AMS=['sleep','energy','dread','look'];
+function startAM(id){const t=todayKey(),ex=(D().am||{})[ak(id,t)];AM={childId:id,date:t,sleep:'',energy:'',dread:'',why:[],look:'',lookText:'',...(ex?JSON.parse(JSON.stringify(ex)):{}),st:0,done:false};go('am');renderAM()}
+function optA(f,v,e,l,on){return`<button class="opt ${on?'on':''}" data-act="amPick" data-f="${f}" data-v="${esc(v)}" aria-pressed="${on}"><span class="e">${e}</span><span>${esc(l)}</span></button>`}
+function renderAM(){const p=prof(AM.childId),young=p.age==='5-7',k=AMS[AM.st];let title='',hint='',h='';
+  if(AM.done){const dr=AM.dread&&AM.dread!=='Nee';$('#amBox').innerHTML=`<div class="card done"><div style="font-size:4rem">☀️</div><h2 style="font-size:2rem">Fijne dag, ${esc(p.name)}!</h2><p class="muted">${dr?'Wat goed dat je vertelt waar je tegenop ziet. Vertel het gerust even aan papa of mama, dan denken ze met je mee.':AM.look==='Ja!'?'Geniet ervan! Vanavond hoor ik graag hoe het was.':'Een nieuwe dag om te ontdekken.'}</p><button class="btn full" data-act="go" data-s="home">Klaar</button></div>`;return}
+  if(k==='sleep'){title='Hoe heb je geslapen?';h=`<div class="opts">${SLEEP.map(([e,l])=>optA('sleep',l,e,l,AM.sleep===l)).join('')}</div>`}
+  if(k==='energy'){title='Hoe is je energie?';hint=young?'Hoe vol is jouw batterij?':'Hoe vol is je batterij vanochtend?';h=`<div class="opts">${ENERGY.map(([e,l])=>optA('energy',l,e,l,AM.energy===l)).join('')}</div>`}
+  if(k==='dread'){title='Zie je ergens tegenop vandaag?';h=`<div class="opts">${AMD.map(([e,l])=>optA('dread',l,e,l,AM.dread===l)).join('')}</div>`;if(AM.dread&&AM.dread!=='Nee')h+=`<div class="zone" style="margin-top:18px">Waar zie je tegenop?</div><div class="opts">${DREAD.map(([e,l])=>`<button class="opt ${AM.why.includes(l)?'on':''}" data-act="amWhy" data-v="${esc(l)}"><span class="e">${e}</span><span>${esc(l)}</span></button>`).join('')}</div>`}
+  if(k==='look'){title='Kijk je ergens naar uit vandaag?';h=`<div class="opts">${AML.map(([e,l])=>optA('look',l,e,l,AM.look===l)).join('')}</div>`;if(AM.look&&AM.look!=='Niet echt')h+=`<div class="field" style="margin-top:14px"><label for="amTxt">Waarnaar?</label><input type="text" id="amTxt" maxlength="120" value="${esc(AM.lookText)}" placeholder="Mag ook leeg blijven"></div>`}
+  $('#amBox').innerHTML=`<div class="row sp"><button class="btn line sm" data-act="go" data-s="home">Stoppen</button><b>${p.av} ${esc(p.name)}</b></div><div class="bar"><i style="width:${(AM.st+1)/AMS.length*100}%;background:var(--zY)"></i></div><div class="kicker">Ochtend · ${AM.st+1} van ${AMS.length}</div><h1 class="q">${esc(title)}</h1>${hint?`<p class="hint">${esc(hint)}</p>`:''}<div class="tools">${speakBtn(title+' '+hint)}</div>${h}<div class="acts"><button class="btn line" data-act="amPrev" ${AM.st===0?'disabled':''}>Terug</button><button class="btn" data-act="amNext">${AM.st===AMS.length-1?'Klaar':'Verder'}</button></div>`}
+function saveAM(){const t=$('#amTxt');if(t)AM.lookText=t.value.trim();const r={childId:AM.childId,date:AM.date,sleep:AM.sleep,energy:AM.energy,dread:AM.dread,why:AM.dread&&AM.dread!=='Nee'?AM.why:[],look:AM.look,lookText:AM.look&&AM.look!=='Niet echt'?AM.lookText:'',time:hhmm(),upd:Date.now()};D().am=D().am||{};D().am[ak(r.childId,r.date)]=r;if(!DEMO)cache()}
+function amBanner(){const t=todayKey(),xs=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid).map(p=>[p,(D().am||{})[ak(p.id,t)]]).filter(x=>x[1]);if(!xs.length)return'';
+  return`<div class="card" style="background:color-mix(in oklab,var(--zY) 12%,var(--paper))"><h3>Vanochtend</h3>${xs.map(([p,a])=>`<p style="margin:6px 0">${p.av} <b>${esc(p.name)}</b>: ${esc((a.sleep||'?').toLowerCase())} geslapen · energie ${esc((a.energy||'?').toLowerCase())}${a.dread&&a.dread!=='Nee'?` · <b>ziet ${a.dread==='Ja'?'':'een beetje '}op tegen${a.why&&a.why.length?' '+esc(a.why.join(', ').toLowerCase()):' iets'}</b>`:''}${a.look&&a.look!=='Niet echt'?' · kijkt uit naar '+(a.lookText?esc(a.lookText):'iets'):''}</p>`).join('')}</div>`}
 
 /* ---------- feelings help ---------- */
 let H=null,runT=null;
@@ -699,7 +760,7 @@ function renderMine(){
   <div class="card"><h3>Je hartjeskalender</h3><p class="muted small">Elk hartje is een dag. Tik erop om terug te lezen.</p><div class="cal">${cells}</div></div>`;
 }
 function dayDetail(r,parent){
-  const z=zone(r)||'N',rows=[['Gevoelens',(r.emotions||[]).map(e=>(EM[e]?EM[e].e+' ':'')+e+(e===r.main&&r.emotions.length>1?' (grootst)':'')).join(', ')],['Gedaan',(r.activities||[]).map(a=>AC[a]?AC[a].l:a).join(', ')],['Samen met',(r.social||[]).join(', ')],['Erbij horen',r.belong],['Leukste moment',r.best],['Minder leuk',r.hard],['Wat er gebeurde',r.hardDetail],['Wat had geholpen',(r.need||[]).join(', ')],['Last van',(r.pain||[]).join(', ')],['Geslapen (nacht ervoor)',r.sleep],['Zin in morgen',r.morrow],['Ziet tegenop',(r.dread||[]).join(', ')],['Uitkijken naar',r.tomorrow],['In het hoofd',r.mind],['Wat er in het hoofd zit',r.worry]];
+  const z=zone(r)||'N',rows=[['Gevoelens',(r.emotions||[]).map(e=>(EM[e]?EM[e].e+' ':'')+e+(e===r.main&&r.emotions.length>1?' (grootst)':'')).join(', ')],['Gedaan',(r.activities||[]).map(a=>AC[a]?AC[a].l:a).join(', ')],['Samen met',(r.social||[]).join(', ')],['Erbij horen',r.belong],['Leukste moment',r.best],['Minder leuk',r.hard],['Wat er gebeurde',r.hardDetail],['Wat had geholpen',(r.need||[]).join(', ')],['Last van',(r.pain||[]).join(', ')],['Energie (avond)',r.energy],['Geslapen (nacht ervoor)',r.sleep],['Zin in morgen',r.morrow],['Ziet tegenop',(r.dread||[]).join(', ')],['Uitkijken naar',r.tomorrow],['In het hoofd',r.mind],['Wat er in het hoofd zit',r.worry]];
   return`<div class="row"><div style="width:40px">${heart(z,ZONES[z].n)}</div><b>${ZONES[z].n}</b>${parent&&score(r)!==null?`<span class="muted small">stemming ${fmt(score(r))}</span>`:''}</div>`+rows.filter(x=>x[1]).map(([l,v])=>`<div class="ans"><b>${l}</b><p>${esc(v)}</p></div>`).join('');
 }
 
@@ -720,18 +781,23 @@ function renderParent(){
 function kidChips(){const ps=D().settings.profiles;return`<div class="chips"><button class="chip ${pKid==='all'?'on':''}" data-act="pKid" data-v="all">Beide</button>${ps.map(p=>`<button class="chip ${pKid===p.id?'on':''}" data-act="pKid" data-v="${p.id}">${p.av} ${esc(p.name)}</button>`).join('')}</div>`}
 function obs(el,fn){const r=new ResizeObserver(()=>fn());r.observe(el);ros.push(r)}
 function renderOverview(){
+  if(S.settings.loc&&!DEMO&&(!S.wxAt||Date.now()-S.wxAt>6*3600e3))wxFetch(false);
   const t=todayKey(),from=pPer==='all'?null:addDays(t,-(pPer-1));
   const ps=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid);
   const A=ps.map(p=>analyze(p.id,from));
   const head=A.map((a,i)=>(i===0?esc(a.nm):esc(a.nm))+' '+mood(a.avg)[1]).join(', ');
   const per=[[7,'7 dagen'],[30,'30 dagen'],[90,'3 maanden'],['all','Alles']];
   let h=`<div class="ctrl">${kidChips()}<div class="chips">${per.map(([v,l])=>`<button class="chip ${pPer===v?'on':''}" data-act="pPer" data-v="${v}">${l}</button>`).join('')}</div></div>
-  ${reqBanner()}<h2 class="find">${cap(head)}.</h2><p class="muted small" style="margin:0 0 6px">Stemming per dag: van −2 (lastig) tot +2 (fijn), berekend uit de gekozen gevoelens. Het grootste gevoel telt het zwaarst.</p>`;
+  ${reqBanner()}${amBanner()}<h2 class="find">${cap(head)}.</h2><p class="muted small" style="margin:0 0 6px">Stemming per dag: van −2 (lastig) tot +2 (fijn), berekend uit de gekozen gevoelens. Het grootste gevoel telt het zwaarst.</p>`;
   const allDates=A.flatMap(a=>a.rs.map(r=>r.date)).sort();
   const start=from||(allDates[0]||t);
   h+=`<div class="card"><div class="row sp"><h3>Stemming per dag</h3><div class="legend">${A.map(a=>`<span style="--k:${kcOf(a.cid)}"><i></i>${esc(a.nm)}</span>`).join('')}${evList().some(e=>e.start<=t&&e.end>=start)?'<span style="--k:color-mix(in oklab,var(--zY) 45%,var(--paper))"><i style="border-radius:3px"></i>Gebeurtenis</span>':''}</div></div><div class="fig" id="lineFig"><svg role="img" aria-label="Lijngrafiek van de stemming per dag"></svg><div class="tip"></div></div></div>`;
   h+=`<div class="card"><h3>Per dag van de week</h3><p class="muted small" style="margin-top:0">Gemiddelde stemming per weekdag. Groen is fijner, blauw is lastiger.</p><div class="wk"><div></div>${WD.map(d=>`<div class="hd">${d}</div>`).join('')}${A.map(a=>`<div class="nm" title="${esc(a.nm)}">${a.p.av} <span class="nmx">${esc(a.nm)}</span></div>`+a.wd.map((arr,i)=>{const m=mean(arr);return`<div class="c" title="${WDL[i]}${m===null?'':': '+fmt(m)+' ('+arr.length+' dagen)'}" style="${cellStyle(m)}">${fmt(m)}</div>`}).join('')).join('')}</div></div>`;
   h+=sleepCard(A.map(a=>a.cid),from,t);
+  {const loc=S.settings.loc;let e=`<div class="card"><div class="row sp"><h3>Weer en maan</h3>${loc&&!DEMO?`<span class="muted small">${esc(loc.name)}</span>`:''}</div>`;
+   if(!loc&&!DEMO)e+=`<p class="small">Koppel jullie woonplaats bij <b>Beheer</b>; dan haalt HeartKidz het weer van elke dag erbij. De maanstand rekent de app zelf uit.</p>`;
+   A.forEach(a=>{const E=a.EN;if(!E.rows.length)return;e+=`<div class="sub">${a.p.av} ${esc(a.nm)}</div><div style="overflow-x:auto"><table class="envt"><thead><tr><th></th><th class="n">Stemming</th><th class="n">Vergelijk</th></tr></thead><tbody>${E.rows.map(r=>`<tr><td>${esc(cap(r.la))} <span class="muted small">(${r.na})</span></td><td class="n">${fmt(r.ma)}</td><td class="n">${fmt(r.mb)} <span class="muted small">${esc(r.lb)} (${r.nb})</span></td></tr>`).join('')}${E.moonOwn[2]?`<tr><td>Eigen bed, rond volle maan <span class="muted small">(${E.moonOwn[2]})</span></td><td class="n">${pct(E.moonOwn[0])}</td><td class="n">${pct(E.moonOwn[1])} <span class="muted small">overige nachten (${E.moonOwn[3]})</span></td></tr>`:''}</tbody></table></div>`});
+   e+=`<p class="muted small" style="margin-bottom:0">Pas vanaf 4 dagen per groep trekt HeartKidz conclusies. ${S.settings.loc||DEMO?'Weerdata: Open-Meteo.com.':''}</p></div>`;h+=e}
   const P=pciAn(from,A.map(a=>a.cid));if(P)h+=`<div class="card"><h3>En hoe gaat het met jullie?</h3><p class="muted small" style="margin-top:0">Uit jullie eigen check-in in het ouderlog (${P.n}×).</p><div class="kpis">${P.byWho.map(x=>`<div class="kpi"><strong>${x.m.toFixed(1).replace('.',',')}</strong><small>${esc(x.w)}: gemiddeld ${PSCALE[Math.round(x.m)-1].toLowerCase()}</small></div>`).join('')}</div>${P.ins.length?`<ul class="ins" style="margin-top:10px">${P.ins.map(x=>`<li style="--t:var(--zY)">${esc(x)}</li>`).join('')}</ul>`:''}</div>`;
   h+=`<div class="panels ${A.length>1?'two':''}">${A.map(panel).join('')}</div>`;
   h+=`<p class="note" style="margin-top:14px">Dit overzicht laat zien wat je kind zelf heeft gekozen. Het is geen beoordeling of diagnose, maar een aanleiding voor een rustig gesprek. Patronen worden betrouwbaarder naarmate er meer dagen zijn ingevuld.</p>`;
@@ -746,11 +812,15 @@ function nightStrip(cid,days,act){
   return`<div class="ns" style="grid-template-columns:${cols}">`+
    row('Dag',d=>{const r=D().cks[key(cid,d)],z=r&&zone(r);return`<div class="hz" title="${esc(long(d))}: ${r?ZONES[z||'N'].n+(score(r)!==null?' '+fmt(score(r)):''):'geen check-out'}">${heart(z,'')}</div>`})+
    row('Nacht',d=>{const n=D().nights[nk(cid,d)],o=nightOut(n);return`<button class="cl ${o?'':'e'}" ${o?`style="--z:var(--z${o})"`:''} ${act?`data-act="ngPick" data-d="${d}"`:'tabindex="-1"'} title="Nacht van ${esc(long(d))}: ${o?NOUT[o]+(n.snel?', ging snel slapen':''):'niet ingevuld'}" aria-label="Nacht ${esc(short(d))}"></button>`})+
+   row('In slaap',d=>{const f=fellOf(D().nights[nk(cid,d)]);return`<div class="sn" ${f?`style="--z:var(--z${f==='Eigen bed'?'G':f==='Matrasje'?'Y':'B'})"`:''} title="${esc(f?'In slaap: '+f:'')}"></div>`})+
+   row('Energie',d=>{const a=(D().am||{})[ak(cid,d)],v=a&&ENV[a.energy];return`<div class="sn" ${v?`style="--z:var(--z${v>=4?'G':v===3?'L':v===2?'Y':'R'})"`:''} title="${esc(a&&a.energy?'Energie ochtend: '+a.energy:'')}"></div>`})+
    row('Snel',d=>{const n=D().nights[nk(cid,d)];return`<div class="sn" ${n&&n.snel?'style="--z:var(--c1)"':''}></div>`})+
    row('Gedrag',d=>{const x=(D().plog||{})[pk(cid,d)],b=x?(x.behav||[]).filter(v=>v!=='Geen bijzonderheden'):[];return`<div class="sn" ${b.length?'style="--z:var(--zR)"':''} title="${esc(b.join(', '))}"></div>`})+
+   row('Weer',d=>{const w=wxOf(d);return`<div class="em" title="${w?esc(wxInfo(w.c)[1]+', '+Math.round(w.tx)+'°, '+w.p.toFixed(1)+' mm'):''}">${w?wxInfo(w.c)[0]:''}</div>`})+
+   row('Maan',d=>{const m=moon(d);return`<div class="em" title="${m.l}">${m.e}</div>`})+
    `<div></div>`+days.map((d,i)=>`<div class="dt">${i===0||i===days.length-1||wdi(d)===0?+d.slice(8):''}</div>`).join('')+`</div>`;
 }
-const NLEG=`<div class="nl">${['G','Y','B','N'].map(z=>`<span style="--z:var(--z${z})"><i></i>${NOUT[z]}</span>`).join('')}<span style="--z:var(--c1)"><i style="height:6px"></i>Ging snel slapen</span><span style="--z:var(--zR)"><i style="height:6px"></i>Gedragssignaal</span></div>`;
+const NLEG=`<div class="nl">${['G','Y','O','L','B'].map(z=>`<span style="--z:var(--z${z})"><i></i>${NOUT[z]}</span>`).join('')}<span style="--z:var(--c1)"><i style="height:6px"></i>Ging snel slapen</span><span style="--z:var(--zR)"><i style="height:6px"></i>Gedragssignaal</span><span class="muted">In slaap: groen eigen bed · geel matrasje · blauw bij mama. Energie: groen veel → rood op.</span></div>`;
 function sleepCard(ids,from,t){
   const len=Math.min(from?diff(from,t)+1:31,window.innerWidth<600?14:31),days=[];for(let i=len-1;i>=0;i--)days.push(addDays(t,-i));
   const any=ids.some(id=>Object.values(D().nights||{}).some(n=>n.childId===id));
@@ -771,7 +841,7 @@ function panel(a){
   const filled=a.span?Math.min(1,a.n/a.span):null;
   let h=`<div class="panel" style="--kc:${kcOf(a.cid)}"><div class="row sp"><h3>${a.p.av} ${esc(a.nm)}</h3><span class="muted small">${a.p.age==='5-7'?'5–7 jaar':'8–12 jaar'}</span></div>
   <div class="kpis" style="margin-top:10px"><div class="kpi"><strong>${a.n}${a.span?'<span class="muted" style="font-size:1rem"> / '+a.span+'</span>':''}</strong><small>dagen ingevuld${filled!==null?' · '+pct(filled):''}</small></div><div class="kpi"><strong>${fmt(a.avg)}</strong><small>${mood(a.avg)[0]}</small></div><div class="kpi"><strong>${pct(a.hardPct)}</strong><small>lastige dagen</small></div><div class="kpi"><strong>${pct(a.sleepPct)}</strong><small>goed geslapen</small></div></div>`;
-  const X=a.X;if(X.painPct!==null||X.belongPct!==null||X.mindPct!==null||X.dreadPct!==null){h+=`<div class="sub">Lijf, vrienden en hoofd</div><div class="kpis"><div class="kpi"><strong>${pct(X.painPct)}</strong><small>dagen ergens last van${X.painTop[0]?' · vaakst '+esc(X.painTop[0][0].toLowerCase()):''}</small></div><div class="kpi"><strong>${pct(X.belongPct)}</strong><small>voelde zich erbij horen</small></div><div class="kpi"><strong>${pct(X.mindPct)}</strong><small>avonden iets in het hoofd</small></div><div class="kpi"><strong>${pct(X.dreadPct)}</strong><small>zag op tegen morgen</small></div></div>`}
+  const X=a.X;if(X.painPct!==null||X.belongPct!==null||X.mindPct!==null||X.dreadPct!==null){h+=`<div class="sub">Lijf, vrienden en hoofd</div><div class="kpis"><div class="kpi"><strong>${pct(X.painPct)}</strong><small>dagen ergens last van${X.painTop[0]?' · vaakst '+esc(X.painTop[0][0].toLowerCase()):''}</small></div><div class="kpi"><strong>${pct(X.belongPct)}</strong><small>voelde zich erbij horen</small></div><div class="kpi"><strong>${pct(X.mindPct)}</strong><small>avonden iets in het hoofd</small></div><div class="kpi"><strong>${pct(X.dreadPct)}</strong><small>zag op tegen morgen</small></div><div class="kpi"><strong>${X.eAM!==null?X.eAM.toFixed(1).replace('.',','):'–'}</strong><small>energie 's ochtends (van 4)</small></div><div class="kpi"><strong>${X.ePM!==null?X.ePM.toFixed(1).replace('.',','):'–'}</strong><small>energie 's avonds (van 4)</small></div></div>`}
   if(X.vocab.length>1)h+=`<div class="sub">Gevoelswoordenschat</div><p class="muted small" style="margin:-4px 0 6px">${X.uniq} verschillende gevoelens gekozen. Per week:</p>`+X.vocab.map(v=>`<div class="hr"><span>wk ${esc(short(v.w))}</span><div class="tr"><i style="width:${v.n/12*100}%"></i></div><b>${v.n}</b></div>`).join('');
   if(X.nrec)h+=`<p class="small" style="margin:10px 0 0"><b>Herstel:</b> na de gevoelshulp werd het gevoel gemiddeld ${X.recov.toFixed(1).replace('.',',')} stap kleiner (${X.nrec}×).</p>`;
   if(X.pl.length)h+=`<div class="sub">Ouderlog</div><div class="tags">${X.behav.length?X.behav.map(([b,n])=>`<span class="tag">${esc(b)} ${n}×</span>`).join(''):'<span class="tag">Geen gedragssignalen</span>'}${X.less?`<span class="tag">Minder gegeten ${X.less}×</span>`:''}${X.late?`<span class="tag">Laat naar bed ${X.late}×</span>`:''}</div>`;
@@ -820,7 +890,7 @@ function lineChart(fig,series,from,to,evs=[]){
     s.onpointermove=e=>{const r=s.getBoundingClientRect();let i=Math.round((e.clientX-r.left-L)/(days.length<2?1:iw/(days.length-1)));i=Math.max(0,Math.min(days.length-1,i));const d=days[i];
       hx.setAttribute('x1',x(i));hx.setAttribute('x2',x(i));hx.setAttribute('opacity','.5');
       tip.innerHTML=`<b>${esc(cap(long(d)))}</b>`+series.map(se=>{const rc=se.recs.find(q=>q.date===d);const m=rc&&EM[rc.main||(rc.emotions||[])[0]];return`<div>${esc(se.name)}: ${rc?(m?m.e+' '+esc(m.l)+' · '+fmt(score(rc)):'geen gevoel gekozen'):'niet ingevuld'}</div>`}).join('');
-      tip.innerHTML+=evs.filter(e=>d>=e.start&&d<=e.end).map(e=>`<div>${CT[e.cat]?CT[e.cat].e:'📌'} ${esc(e.title)}</div>`).join('');tip.style.display='block';tip.style.left=Math.max(4,Math.min(W-174,x(i)+12))+'px';tip.style.top='8px'};
+      {const w=wxOf(d),mo=moon(d);tip.innerHTML+=`<div>${w?wxInfo(w.c)[0]+' '+Math.round(w.tx)+'° · ':''}${mo.e} ${mo.l}</div>`}tip.innerHTML+=evs.filter(e=>d>=e.start&&d<=e.end).map(e=>`<div>${CT[e.cat]?CT[e.cat].e:'📌'} ${esc(e.title)}</div>`).join('');tip.style.display='block';tip.style.left=Math.max(4,Math.min(W-174,x(i)+12))+'px';tip.style.top='8px'};
     s.onpointerleave=()=>{tip.style.display='none';hx.setAttribute('opacity','0')};
   };
   obs(fig,draw);
@@ -848,7 +918,9 @@ function renderNights(){
   h+=`<div class="panels ${ps.length>1?'two':''}">`+ps.map((p,i)=>{const n=D().nights[nk(p.id,ngDate)]||{},r=D().cks[key(p.id,ngDate)],z=r&&zone(r);
     return`<div class="panel" style="--kc:${kcOf(p.id)}"><h3>${p.av} ${esc(p.name)}</h3><p class="muted small" style="margin:4px 0 10px">Check-out die avond: ${r?`<b>${ZONES[z||'N'].n}</b>${score(r)!==null?' ('+fmt(score(r))+')':''}${r.main?' · '+esc(r.main):''}`:'niet gedaan'}</p>
     ${(()=>{const x=(D().plog||{})[pk(p.id,ngDate)]||{};return`<div class="zone">Gedrag vandaag</div><div class="chips">${BEHAV.map(b=>chk('checkbox','pb_'+p.id,b,b,(x.behav||[]).includes(b))).join('')}</div><div class="zone">Eetlust</div><div class="chips">${APPET.map(b=>chk('radio','pa_'+p.id,b,b,x.app===b)).join('')}</div><div class="zone">Bedtijd</div><div class="chips">${BEDT.map(b=>chk('radio','pt_'+p.id,b,b,x.bed===b)).join('')}</div>`})()}
-    <div class="zone">De nacht erna</div><div class="chips">${NQ.map(([k,l])=>chk('checkbox','nq_'+p.id,k,l,!!n[k])).join('')}</div>
+    <div class="zone">Waar in slaap gevallen?</div><div class="chips">${FELL.map(([e,l])=>chk('radio','nf_'+p.id,l,e+' '+l,fellOf(n)===l)).join('')}</div>
+    <div class="zone">Hoe ging de nacht?</div><div class="chips">${NIGHT.map(([c,l])=>chk('radio','nt_'+p.id,l,l,(n.night||(Object.keys(n).length?NOUT[nightOut(n)]:''))===l)).join('')}</div>
+    <div class="chips" style="margin-top:8px">${chk('checkbox','nq_'+p.id,'snel','😴 Ging snel slapen',!!n.snel)}</div>
     <div class="field"><label for="nn_${p.id}">Notitie (optioneel)</label><input type="text" id="nn_${p.id}" maxlength="200" value="${esc(n.note||'')}" placeholder="Bijv. nachtmerrie, ziek, laat naar bed"></div></div>`}).join('')+`</div>
    <div class="card" style="margin-top:14px"><h3>En hoe was jullie dag?</h3><p class="muted small" style="margin-top:0">Optioneel. Kinderen voelen spanning thuis goed aan; zo zie je ook dat verband.</p><div class="panels two">${PWHO.map(w=>{const o=(D().pci||{})[ok(w,ngDate)]||{};return`<div><div class="zone" style="margin-top:4px">${w}</div><div class="chips">${PSCALE.map((l,i)=>chk('radio','pm_'+w,String(i+1),l,o.mood===i+1)).join('')}</div><div class="zone">Energie</div><div class="chips">${PEN.map(l=>chk('radio','pe_'+w,l,l,o.energy===l)).join('')}</div></div>`}).join('')}</div></div>
    <button class="btn full" style="margin-top:12px" data-act="ngSave">Opslaan</button>`;
@@ -859,7 +931,8 @@ function weekly(cid,from){
   const t=todayKey(),all=childRecs(cid),f0=(all[0]&&all[0].date)||t,first=from&&from>f0?from:f0;let w=addDays(first,-wdi(first));const out=[];
   while(w<=t){const e=addDays(w,6),rs=all.filter(r=>r.date>=w&&r.date<=e),sc=rs.map(score).filter(v=>v!==null),ms=momList().filter(m=>m.childId===cid&&m.date>=w&&m.date<=e),ns=Object.values(D().nights||{}).filter(n=>n.childId===cid&&n.date>=w&&n.date<=e);
     const pls=Object.values(D().plog||{}).filter(x=>x.childId===cid&&x.date>=w&&x.date<=e);
-    out.push({pain:rs.filter(r=>(r.pain||[]).some(p=>p!=='Nee, niets')).length,mind:rs.filter(r=>r.mind&&r.mind!==MIND[0][1]).length,beh:pls.filter(x=>(x.behav||[]).some(b=>b!=='Geen bijzonderheden')).length,w,n:rs.length,m:mean(sc),hard:sc.filter(v=>v<-.4).length,big:ms.length,nn:ns.length,own:ns.length?ns.filter(n=>nightOut(n)==='G').length:null,snel:ns.filter(n=>n.snel).length});w=addDays(w,7)}
+    const ams=Object.values(D().am||{}).filter(x=>x.childId===cid&&x.date>=w&&x.date<=e);
+    out.push({en:mean(ams.map(x=>ENV[x.energy]).filter(Boolean)),pain:rs.filter(r=>(r.pain||[]).some(p=>p!=='Nee, niets')).length,mind:rs.filter(r=>r.mind&&r.mind!==MIND[0][1]).length,beh:pls.filter(x=>(x.behav||[]).some(b=>b!=='Geen bijzonderheden')).length,w,n:rs.length,m:mean(sc),hard:sc.filter(v=>v<-.4).length,big:ms.length,nn:ns.length,own:ns.length?ns.filter(n=>nightOut(n)==='G').length:null,snel:ns.filter(n=>n.snel).length});w=addDays(w,7)}
   return out;
 }
 function repBody(from,txt){
@@ -872,9 +945,10 @@ function repBody(from,txt){
     <h3>Samenvatting</h3><ul><li>Check-outs: ${a.n} van ${a.span} dagen${a.span?' ('+pct(a.n/a.span)+')':''}</li><li>Gemiddelde stemming: ${fmt(a.avg)} (${mood(a.avg)[0].toLowerCase()})${sc.length>=6?`; eerste helft ${fmt(m1)}, tweede helft ${fmt(m2)}`:''}</li><li>Lastige dagen: ${pct(a.hardPct)}</li>${zt?`<li>Innerlijk weer: ${Object.entries(a.zones).filter(x=>x[1]).map(([z,n])=>ZONES[z].n+' '+Math.round(n/zt*100)+'%').join(', ')}</li>`:''}<li>Meest gekozen gevoelens: ${Object.entries(a.emo).sort((x,y)=>y[1]-x[1]).slice(0,5).map(([e,n])=>esc(e)+' ('+n+'×)').join(', ')||'–'}</li>
     <li>Grote gevoelens: ${a.ms.length} moment${a.ms.length===1?'':'en'}${a.ms.length?' · meestal '+DGL[Object.entries(a.dd).sort((x,y)=>y[1]-x[1])[0][0]]:''}</li>
     ${(()=>{const X=a.X;return`<li>Lichamelijke klachten: ${pct(X.painPct)} van de dagen${X.painTop.length?' ('+X.painTop.slice(0,3).map(([p,n])=>esc(p.toLowerCase())+' '+n+'×').join(', ')+')':''}</li><li>Voelde zich erbij horen: ${pct(X.belongPct)}${X.nb?' · '+X.nb+'× niet echt':''}</li><li>Iets in het hoofd voor het slapen: ${pct(X.mindPct)} van de avonden · zag op tegen de volgende dag: ${pct(X.dreadPct)}</li><li>Gevoelswoordenschat: ${X.uniq} verschillende gevoelens${X.vocab.length>1?' (per week: '+X.vocab.map(v=>v.n).join(', ')+')':''}</li>${X.nrec?`<li>Herstel na gevoelshulp: gemiddeld ${X.recov.toFixed(1).replace('.',',')} stap kleiner (${X.nrec}×)</li>`:''}${X.pl.length?`<li>Ouderlog (${X.pl.length} dagen): ${X.behav.length?X.behav.map(([b,n])=>esc(b.toLowerCase())+' '+n+'×').join(', '):'geen gedragssignalen'}${X.less?' · minder gegeten '+X.less+'×':''}${X.late?' · laat naar bed '+X.late+'×':''}</li>`:''}`})()}
-    <li>Nachten ingevuld: ${na.n}${na.n?` · hele nacht in eigen bed ${pct(na.own)} · ging in eigen bed slapen ${pct(na.inBed)} · snel slapen ${pct(na.snel)} · kwam op de kamer ${pct(na.kwam)} · hele nacht bij ouders ${pct(na.heel)}`:''}</li></ul>`;
-    const obs=[...a.ins,...na.cmp];if(obs.length)h+=`<h3>Wat valt op</h3><ul>${obs.map(i=>`<li>${esc(i.x)}</li>`).join('')}</ul>`;
-    h+=`<h3>Per week</h3><div style="overflow-x:auto"><table><thead><tr><th>Week van</th><th class="n">Check-outs</th><th class="n">Stemming</th><th class="n">Lastige dagen</th><th class="n">Grote gevoelens</th><th class="n">Eigen bed hele nacht</th><th class="n">Snel slapen</th><th class="n">Last lijf</th><th class="n">Piekeren</th><th class="n">Gedrag</th></tr></thead><tbody>${wk.map(w=>`<tr><td>${esc(short(w.w))}</td><td class="n">${w.n}</td><td class="n">${fmt(w.m)}</td><td class="n">${w.hard}</td><td class="n">${w.big}</td><td class="n">${w.nn?w.own+' / '+w.nn:'–'}</td><td class="n">${w.nn?w.snel+' / '+w.nn:'–'}</td><td class="n">${w.pain}</td><td class="n">${w.mind}</td><td class="n">${w.beh}</td></tr>`).join('')}</tbody></table></div>`;
+    <li>Ochtend check-ins: ${a.X.amr.length}${a.X.amr.length?` · energie 's ochtends ${a.X.eAM!==null?a.X.eAM.toFixed(1).replace('.',','):'–'} van 4 · zag 's ochtends ergens tegenop: ${pct(a.X.amDread)}`:''}${a.X.ePM!==null?` · energie 's avonds ${a.X.ePM.toFixed(1).replace('.',',')} van 4`:''}</li>
+    <li>Nachten ingevuld: ${na.n}${na.n?` · hele nacht in eigen bed ${pct(na.own)} · in eigen bed in slaap gevallen ${pct(na.inBed)} · in bed bij mama in slaap gevallen ${pct(na.fellMama)} · snel slapen ${pct(na.snel)} · (deels) bij papa en mama ${pct(na.par)} · (deels) op matrasje ${pct(na.mat)}`:''}</li></ul>`;
+    const obs=[...a.ins,...na.cmp];const er=a.EN.rows;if(er.length)h+=`<h3>Weer en maan</h3><ul>${er.map(r=>`<li>${esc(cap(r.la))}: stemming ${fmt(r.ma)} (${r.na} dagen) tegenover ${esc(r.lb)} ${fmt(r.mb)} (${r.nb} dagen)</li>`).join('')}</ul>`;if(obs.length)h+=`<h3>Wat valt op</h3><ul>${obs.map(i=>`<li>${esc(i.x)}</li>`).join('')}</ul>`;
+    h+=`<h3>Per week</h3><div style="overflow-x:auto"><table><thead><tr><th>Week van</th><th class="n">Check-outs</th><th class="n">Stemming</th><th class="n">Lastige dagen</th><th class="n">Grote gevoelens</th><th class="n">Eigen bed hele nacht</th><th class="n">Snel slapen</th><th class="n">Last lijf</th><th class="n">Piekeren</th><th class="n">Gedrag</th><th class="n">Energie ochtend</th></tr></thead><tbody>${wk.map(w=>`<tr><td>${esc(short(w.w))}</td><td class="n">${w.n}</td><td class="n">${fmt(w.m)}</td><td class="n">${w.hard}</td><td class="n">${w.big}</td><td class="n">${w.nn?w.own+' / '+w.nn:'–'}</td><td class="n">${w.nn?w.snel+' / '+w.nn:'–'}</td><td class="n">${w.pain}</td><td class="n">${w.mind}</td><td class="n">${w.beh}</td><td class="n">${w.en!==null?w.en.toFixed(1).replace('.',','):'–'}</td></tr>`).join('')}</tbody></table></div>`;
     if(a.ms.length){const tg=Object.entries(a.trig).sort((x,y)=>y[1]-x[1]).slice(0,5),hp=Object.entries(a.mhp).sort((x,y)=>y[1]-x[1]).slice(0,5),afs=[...new Set(a.ms.map(m=>m.eval&&m.eval.next).filter(Boolean))];
       h+=`<h3>Grote gevoelens</h3><ul>${tg.length?`<li>Vaakste aanleiding: ${tg.map(([x,n])=>esc(x)+' ('+n+'×)').join(', ')}</li>`:''}${a.tools.length?`<li>Wat ${esc(p.name)} zelf hielp (gevoel gemiddeld kleiner): ${a.tools.slice(0,4).map(x=>esc(TL[x.k].l)+' '+x.d.toFixed(1).replace('.',',')+' stap ('+x.n+'×)').join(', ')}</li>`:''}${hp.length?`<li>Wat volgens ouders hielp: ${hp.map(([x,n])=>esc(x)+' ('+n+'×)').join(', ')}</li>`:''}<li>Besproken met ouders: ${a.ms.filter(m=>m.talked).length} van ${a.ms.length}</li></ul>${afs.length?`<p><b>Afspraken:</b></p><ul>${afs.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
       <div style="overflow-x:auto"><table><thead><tr><th>Datum</th><th>Gevoel</th><th class="n">Groot → na</th><th>Aanleiding</th><th>Besproken</th></tr></thead><tbody>${a.ms.slice().sort((x,y)=>(x.date+x.time).localeCompare(y.date+y.time)).map(m=>`<tr><td>${esc(short(m.date))} ${esc(m.time||'')}</td><td>${esc(m.emo)}</td><td class="n">${m.before||'–'}${m.after?' → '+m.after:''}</td><td>${esc([...(m.trig||[]),...((m.eval&&m.eval.behind)||[])].filter((v,i,ar)=>ar.indexOf(v)===i).join(', ')||'–')}</td><td>${m.talked?'ja':'nee'}</td></tr>`).join('')}</tbody></table></div>`}
@@ -948,12 +1022,22 @@ function renderDays(){
   $('#pBody').innerHTML=`<div class="ctrl">${kidChips()}</div>`+(rs.length?rs.slice(0,120).map(([k,r])=>{const p=prof(r.childId)||{name:'Kind',av:'🌈'},z=zone(r)||'N';
     return`<details class="day"><summary>${heart(z,ZONES[z].n)}<div style="flex:1"><b>${p.av} ${esc(p.name)} · ${esc(long(r.date))}</b><div class="muted small">${esc((r.emotions||[]).join(' · ')||'Geen gevoel gekozen')}${r.parentNote?' · notitie':''}</div></div></summary><div class="in">${dayDetail(r,true)}<div class="field"><label for="n_${k}">Notitie van ouder (alleen hier zichtbaar)</label><textarea id="n_${k}" style="min-height:70px" placeholder="Bijv. samen over gepraat, tip van juf…">${esc(r.parentNote||'')}</textarea></div><div class="row"><button class="btn alt sm" data-act="saveNote" data-k="${k}">Notitie bewaren</button><button class="btn danger sm" data-act="delRec" data-k="${k}">Dag verwijderen</button></div></div></details>`}).join(''):'<div class="card muted">Nog geen antwoorden opgeslagen.</div>');
 }
+let locRes=[],wxBusy=false;
+async function wxFetch(force){const L=S.settings.loc;if(!L||DEMO||wxBusy)return;if(!force&&S.wxAt&&Date.now()-S.wxAt<6*3600e3)return;wxBusy=true;
+  const t=todayKey(),dates=[...Object.values(S.cks),...Object.values(S.nights||{}),...Object.values(S.am||{})].map(x=>x.date).filter(Boolean).sort(),first=dates[0]||addDays(t,-30);
+  const daily='weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,sunshine_duration',base=`latitude=${L.lat}&longitude=${L.lon}&daily=${daily}&timezone=Europe%2FAmsterdam`;
+  const put=j=>{const D_=j&&j.daily;if(!D_||!D_.time)return;D_.time.forEach((d,i)=>{if(d>t||D_.temperature_2m_max[i]==null)return;S.wx[d]={c:D_.weather_code[i],tx:D_.temperature_2m_max[i],tn:D_.temperature_2m_min[i],p:D_.precipitation_sum[i]||0,sun:(D_.sunshine_duration[i]||0)/3600}})};
+  try{const rs=addDays(t,-80);
+    put(await (await fetch(`https://api.open-meteo.com/v1/forecast?${base}&start_date=${first>rs?first:rs}&end_date=${t}`)).json());
+    if(first<rs){const need=Object.keys(S.wx).length<diff(first,t)-2;if(need)put(await (await fetch(`https://archive-api.open-meteo.com/v1/archive?${base}&start_date=${first}&end_date=${addDays(rs,-1)}`)).json())}
+    S.wxAt=Date.now();cache();if(force)toast('Weer bijgewerkt');refresh()}catch(e){if(force)toast(window.claude?'Weer ophalen werkt alleen in de geüploade app.':'Geen verbinding met de weerdienst')}finally{wxBusy=false}}
 function renderManage(){
   const lb=S.settings.lastBackup;const st=DEMO?'Voorbeeldmodus: niets wordt bewaard.':!canStore?'Let op: deze browser staat opslaan niet toe. Gegevens verdwijnen als je de pagina sluit. Open de app in een gewone browser (niet privé).':'Alles staat alleen op dit apparaat, in deze browser. Er gaat niets naar een online database. Wis je browsergegevens of gebruik je een ander apparaat, dan zijn de gegevens daar niet. Maak daarom regelmatig een back-up.'+(lb?' Laatste back-up: '+new Date(lb).toLocaleDateString('nl-NL')+'.':' Er is nog geen back-up gemaakt.');
-  $('#pBody').innerHTML=`<div class="panels two"><div class="card" style="margin:0"><h3>Kinderen</h3>${D().settings.profiles.map((p,i)=>`<div class="field"><label for="nm${i}">Naam kind ${i+1}</label><input type="text" id="nm${i}" maxlength="24" value="${esc(p.name)}"></div><div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1;margin-top:0"><label for="ag${i}">Leeftijd</label><select id="ag${i}"><option value="5-7" ${p.age==='5-7'?'selected':''}>5–7 jaar</option><option value="8-12" ${p.age==='8-12'?'selected':''}>8–12 jaar</option></select></div><div class="field" style="flex:1;margin-top:0"><label for="av${i}">Plaatje</label><select id="av${i}">${AVS.map(a=>`<option ${a===p.av?'selected':''}>${a}</option>`).join('')}</select></div></div>`).join('')}<button class="btn full" data-act="saveProfiles">Opslaan</button><p class="muted small">5–7 jaar krijgt minder gevoelens om uit te kiezen en kortere vragen.</p></div>
+  $('#pBody').innerHTML=`<div class="panels two" style="align-items:start"><div class="card" style="margin:0"><h3>Kinderen</h3>${D().settings.profiles.map((p,i)=>`<div class="field"><label for="nm${i}">Naam kind ${i+1}</label><input type="text" id="nm${i}" maxlength="24" value="${esc(p.name)}"></div><div class="row" style="flex-wrap:nowrap"><div class="field" style="flex:1;margin-top:0"><label for="ag${i}">Leeftijd</label><select id="ag${i}"><option value="5-7" ${p.age==='5-7'?'selected':''}>5–7 jaar</option><option value="8-12" ${p.age==='8-12'?'selected':''}>8–12 jaar</option></select></div><div class="field" style="flex:1;margin-top:0"><label for="av${i}">Plaatje</label><select id="av${i}">${AVS.map(a=>`<option ${a===p.av?'selected':''}>${a}</option>`).join('')}</select></div></div>`).join('')}<button class="btn full" data-act="saveProfiles">Opslaan</button><p class="muted small">5–7 jaar krijgt minder gevoelens om uit te kiezen en kortere vragen.</p></div>
   <div><div class="card" style="margin-top:0"><h3>Oudercode wijzigen</h3><div class="field"><label for="newPin">Nieuwe code (4–8 cijfers)</label><input id="newPin" type="password" inputmode="numeric" maxlength="8" autocomplete="off"></div><button class="btn alt full" data-act="savePin">Code wijzigen</button></div>
   <div class="card"><h3>Opslag en back-up</h3><p class="muted small">${st}</p><div class="row"><button class="btn sm" data-act="backup">Back-up maken</button><button class="btn alt sm" data-act="csv">Exporteer als tabel (CSV)</button><button class="btn alt sm" data-act="restore">Back-up toevoegen</button></div><p class="muted small">Een back-up toevoegen vult de gegevens op dit apparaat aan. Er wordt niets overschreven, tenzij je daar zelf voor kiest. Ook back-ups uit de oude Daglicht-versie werken.</p></div>
   <div class="card"><h3>Meerdere apparaten samenvoegen</h3><ol class="small" style="padding-left:1.2em;margin:6px 0"><li>Maak op elk apparaat een back-up.</li><li>Stuur de bestanden naar één apparaat, bijvoorbeeld via AirDrop, mail of WhatsApp.</li><li>Kies daar <b>Back-up toevoegen</b>. Je kunt meerdere bestanden tegelijk kiezen.</li><li>Wil je overal alles zien? Maak op dat apparaat een nieuwe back-up en voeg die op de andere apparaten toe.</li></ol><p class="muted small">Zelfde dag op twee apparaten ingevuld? Dan blijft de nieuwste bewaard en vullen lege velden elkaar aan. Wat je op één apparaat verwijdert, verdwijnt bij het samenvoegen ook op het andere.</p></div>
+  <div class="card"><h3>Weer koppelen</h3>${S.settings.loc?`<p class="small">Gekoppeld aan <b>${esc(S.settings.loc.name)}</b>.${S.wxAt?' Laatst bijgewerkt: '+new Date(S.wxAt).toLocaleString('nl-NL',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})+'.':''}</p><div class="row"><button class="btn alt sm" data-act="wxNow">Weer nu bijwerken</button><button class="btn line sm" data-act="locOff">Ontkoppelen</button></div>`:`<div class="row" style="flex-wrap:nowrap"><input type="text" id="locQ" placeholder="Woonplaats, bijv. Amersfoort" style="flex:1"><button class="btn sm" data-act="locSearch">Zoek</button></div>${locRes.length?`<div class="chips" style="margin-top:10px">${locRes.map((l,i)=>`<button class="chip" data-act="locPick" data-i="${i}">${esc(l.name)}</button>`).join('')}</div>`:''}`}<p class="muted small">HeartKidz haalt het weer van elke dag op bij Open-Meteo.com. Daarbij gaan alleen de plaats en de datums mee, nooit antwoorden van de kinderen. De maanstand rekent de app zelf uit. Werkt alleen in de geüploade app.</p></div>
   <div class="card"><h3>Voorbeelddata</h3><p class="muted small">Bekijk hoe de patronen eruitzien met zes weken nepgegevens.</p><button class="btn alt full" data-act="${DEMO?'demoOff':'demoOn'}">${DEMO?'Voorbeeld stoppen':'Voorbeelddata bekijken'}</button></div>
   <div class="card"><h3>Alles verwijderen</h3><p class="muted small">Verwijdert alle check-outs, instellingen en de oudercode.</p><button class="btn danger full" data-act="wipe">Alle gegevens verwijderen</button></div></div></div>`;
 }
@@ -968,12 +1052,12 @@ async function offerFile(filename,data,label){
 function backup(){if(!DEMO){S.settings.lastBackup=new Date().toISOString();cache()}offerFile('HeartKidz-backup-'+todayKey()+'.json',JSON.stringify({app:'HeartKidz',v:2,exported:new Date().toISOString(),...S},null,2),'Back-up')}
 function csv(){
   const q=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
-  const head=['datum','kind','gevoelens','grootste gevoel','weer','stemming','gedaan','leukste moment','minder leuk','wat er gebeurde','wat had geholpen','geslapen','morgen','ziet tegenop','notitie ouder','samen met','erbij horen','last van','zin in morgen','tegenop door','in het hoofd'];
-  const rows=Object.values(S.cks).sort(byDate).map(r=>[r.date,(prof(r.childId)||{}).name,(r.emotions||[]).join('; '),r.main,ZONES[zone(r)||'N'].n,score(r)??'',(r.activities||[]).map(a=>AC[a]?AC[a].l:a).join('; '),r.best,r.hard,r.hardDetail,(r.need||[]).join('; '),r.sleep,r.tomorrow,r.worry,r.parentNote,(r.social||[]).join('; '),r.belong,(r.pain||[]).join('; '),r.morrow,(r.dread||[]).join('; '),r.mind]);
+  const head=['datum','kind','gevoelens','grootste gevoel','weer','stemming','gedaan','leukste moment','minder leuk','wat er gebeurde','wat had geholpen','geslapen','morgen','ziet tegenop','notitie ouder','samen met','erbij horen','last van','zin in morgen','tegenop door','in het hoofd','energie avond','energie ochtend','geslapen (ochtend)','ochtend: ziet tegenop','ochtend: kijkt uit naar','weer','maan'];
+  const rows=Object.values(S.cks).sort(byDate).map(r=>[r.date,(prof(r.childId)||{}).name,(r.emotions||[]).join('; '),r.main,ZONES[zone(r)||'N'].n,score(r)??'',(r.activities||[]).map(a=>AC[a]?AC[a].l:a).join('; '),r.best,r.hard,r.hardDetail,(r.need||[]).join('; '),r.sleep,r.tomorrow,r.worry,r.parentNote,(r.social||[]).join('; '),r.belong,(r.pain||[]).join('; '),r.morrow,(r.dread||[]).join('; '),r.mind,r.energy,((S.am||{})[ak(r.childId,r.date)]||{}).energy,((S.am||{})[ak(r.childId,r.date)]||{}).sleep,(((S.am||{})[ak(r.childId,r.date)]||{}).dread||'')+' '+((((S.am||{})[ak(r.childId,r.date)]||{}).why)||[]).join('; '),((S.am||{})[ak(r.childId,r.date)]||{}).look,(S.wx||{})[r.date]?wxInfo(S.wx[r.date].c)[1]+' '+Math.round(S.wx[r.date].tx)+'°':'',moon(r.date).l]);
   offerFile('HeartKidz-export-'+todayKey()+'.csv','﻿'+[head,...rows].map(r=>r.map(q).join(';')).join('\n'),'Export');
 }
 function convert(inc){
-  if(inc&&inc.app==='HeartKidz'&&inc.settings&&inc.cks)return{settings:inc.settings,cks:inc.cks,events:inc.events||{},moments:inc.moments||{},nights:inc.nights||{},plog:inc.plog||{},pci:inc.pci||{},del:inc.del||{}};
+  if(inc&&inc.app==='HeartKidz'&&inc.settings&&inc.cks)return{settings:inc.settings,cks:inc.cks,events:inc.events||{},am:inc.am||{},wx:inc.wx||{},moments:inc.moments||{},nights:inc.nights||{},plog:inc.plog||{},pci:inc.pci||{},del:inc.del||{}};
   if(inc&&inc.version===1&&Array.isArray(inc.profiles)&&Array.isArray(inc.checkouts)){
     const nl=NEEDS.map(n=>n[1]),cks={};
     inc.checkouts.forEach(c=>{const a=c.answers||{},em=(c.emotions||[]);const r={childId:c.childId,date:c.date,emotions:em.filter(e=>EM[e]).slice(0,4),main:'',activities:[],best:a.best||'',hard:a.hard||'',hardDetail:a.hardDetail||'',need:em.filter(e=>nl.includes(e)),sleep:'',tomorrow:a.tomorrow||'',worry:'',completedAt:c.completedAt||''};r.main=r.emotions[0]||'';cks[key(r.childId,r.date)]=r});
@@ -991,6 +1075,7 @@ function makeDemo(){
   const hardD={0:['Ruzie met Lotte in de pauze','Ik werd niet gekozen bij gym','Toets was moeilijk','Mijn broertje pakte mijn spullen'],1:['Ik moest stoppen met de tablet','Ik viel van mijn fiets','Iemand pakte mijn bal','Ik wilde niet naar school']};
   const tom={0:['Zwemles!','Spelen bij Fleur','Knutselen op school','Naar oma'],1:['Gymles','Pannenkoeken','Met de trein','Naar de speeltuin']};
   const c1=ps[0].id,c2=ps[1].id;
+  const dwx={};for(let n=45;n>=0;n--){const d=addDays(t,-n),rain=r()<.45,sun=rain?r()*1.5:r()*6.5;dwx[d]={c:rain?(r()<.3?80:63):sun>4?(r()<.5?0:1):(r()<.5?3:2),tx:4+r()*9,tn:r()*5,p:rain?2+r()*9:r()*.4,sun}}
   const evs=[{id:'e1',title:'Herfstvakantie',cat:'vakantie',kids:[c1,c2],start:addDays(t,-27),end:addDays(t,-20),note:'Een week naar de Veluwe.',good:'Veel buiten, vroeg naar bed. Iedereen was ontspannen.',better:'De laatste vakantiedag rustiger houden; de maandag erna was pittig.',kidEval:{[c1]:{r:5,t:'Hutten bouwen in het bos!'},[c2]:{r:5,t:''}}},
    {id:'e2',title:'Xander ziek (koorts)',cat:'ziek',kids:[c2],start:addDays(t,-12),end:addDays(t,-10),note:'',good:'',better:'',kidEval:{[c2]:{r:1,t:''}}},
    {id:'e3',title:'Schoolreisje dierentuin',cat:'school',kids:[c1],start:addDays(t,-1),end:addDays(t,-1),note:'Ziet op tegen de lange busreis.',good:'',better:'',kidEval:{}},
@@ -1018,16 +1103,17 @@ function makeDemo(){
       on.forEach(e=>{if(e.cat==='vakantie'){const j=acts.indexOf('school');if(j>=0)acts.splice(j,1);if(!acts.includes('uitje')&&r()<.5)acts.push('uitje');v+=.8}if(e.cat==='ziek'){acts.length=0;acts.push('thuis');v-=1.1;sick=true}if(e.cat==='school'){acts.push('uitje');v+=1}});
       if(d===addDays(evs[0].end,3)&&ci===1)v-=.8;
       if(ci===1&&w===0&&!on.length)v-=1.1;
+      if(ci===1&&dwx[d].p>=2)v-=.6;if(ci===0&&dwx[d].sun>=4)v+=.45;
       if(ci===0&&w===0)v-=.35;
       const sleep=sick?'Slecht':prevHard?(r()<.55?'Slecht':r()<.6?'Gaat wel':'Goed'):(r()<.72?'Goed':r()<.7?'Gaat wel':'Slecht');
       if(sleep==='Slecht')v-=.5;
       v+=(r()-.5)*1.1;
-      const z=v>1.15?'Y':v>.3?'G':v>-.3?(r()<.5?'N':'G'):v>-1.1?'B':(ci===1&&acts.includes('scherm')?'R':(r()<.5?'R':'B'));
+      const sc0=v;const z=v>1.15?'Y':v>.3?'G':v>-.3?(r()<.5?'N':'G'):v>-1.1?'B':(ci===1&&acts.includes('scherm')?'R':(r()<.5?'R':'B'));
       const prog=(41-n)/41,EARLY=['Blij','Boos','Moe','Gewoon','Verdrietig','Superblij'];let pool=EMO.filter(e=>e.z===z&&(p.age!=='5-7'||e.y)&&(ci!==1||prog>.45||EARLY.includes(e.l)));if(!pool.length)pool=EMO.filter(e=>e.z===z&&(p.age!=='5-7'||e.y));
       const main=pick(pool).l,emos=[main];
       if(r()<(ci===1&&prog<.45?.25:.55)){const e2=pick(EMO.filter(e=>(p.age!=='5-7'||e.y)&&(ci!==1||prog>.45||EARLY.includes(e.l))&&e.l!==main&&(z==='Y'||z==='G'?(e.z==='Y'||e.z==='G'):(e.z!=='Y'))));emos.push(e2.l)}
       if(sleep==='Slecht'&&!emos.includes('Moe'))emos.push('Moe');
-      const rec={childId:p.id,date:d,emotions:emos,main,activities:acts,best:r()<.85?pick(best[ci]):'',hard:'',hardDetail:'',need:[],sleep,tomorrow:r()<.6?pick(tom[ci]):'',worry:'',completedAt:d+'T19:30:00'};
+      const rec={energy:pick(sc0<-.3?['Weinig','Op','Genoeg']:['Genoeg','Heel veel','Genoeg','Weinig']),childId:p.id,date:d,emotions:emos,main,activities:acts,best:r()<.85?pick(best[ci]):'',hard:'',hardDetail:'',need:[],sleep,tomorrow:r()<.6?pick(tom[ci]):'',worry:'',completedAt:d+'T19:30:00'};
       const sc=score(rec);
       rec.hard=r()<.08?'Vertel ik liever niet':sc<-.6?'Ja, best wel':sc<.3?'Een klein beetje':'Nee, eigenlijk niet';
       if(rec.hard==='Ja, best wel'||rec.hard==='Een klein beetje')rec.hardDetail=r()<.7?pick(hardD[ci]):'';
@@ -1054,20 +1140,24 @@ function makeDemo(){
       eval:done||par?{behind:[trig],helped:ci===1?(trig==='Stoppen met iets leuks'?['Grens met uitleg','Even ruimte geven']:['Knuffel','Gevoel benoemen']):['Samen praten','Gevoel benoemen'],next:ci===1&&trig==='Stoppen met iets leuks'?'5 minuten van tevoren waarschuwen en een timer zetten.':''}:null};
   });
   mom.dmx={id:'dmx',childId:c2,date:addDays(t,-1),time:'18:25',src:'kind',emo:'Boos',before:5,after:3,body:['Handen','Hoofd'],tools:['olifant'],trig:[],what:'',wantTalk:'Straks',talked:false,eval:null};
-  const nights={},plog={},pci={};
+  const nights={},plog={},pci={},am={};
   ps.forEach((p,ci)=>{let prevOut='G';for(let n=41;n>=1;n--){const d=addDays(t,-n),w=wdi(d);if(r()<.08){prevOut='G';continue}const rec=cks[key(p.id,d)],sc=rec?score(rec):0,big=Object.values(mom).some(m=>m.childId===p.id&&m.date===d),prog=(41-n)/41,sick=evs.some(e=>e.cat==='ziek'&&e.kids.includes(p.id)&&d>=e.start&&d<=e.end);
     const bed=(w===4||w===5)?(r()<.6?'Later dan normaal':'Op tijd'):(r()<.1?'Later dan normaal':'Op tijd');
     let po=ci===0?.8:.12+.62*prog;po+=rec?.1:-.15;if(sc<-.4)po-=.22;if(big)po-=.1;if(ci===1&&n<=10)po+=.2;if(bed!=='Op tijd')po-=.18;if(rec&&rec.mind&&rec.mind!==MIND[0][1])po-=.15;
-    const own=r()<po;let kwam=false,heel=false,eigen=true;if(!own){if(r()<(ci===0?.7:.55))kwam=true;else{heel=true;kwam=true;if(r()<.35)eigen=false}}
+    const own=r()<po;let night='Hele nacht in eigen bed';if(!own){const q=r();night=ci===0?(q<.55?'Halverwege de nacht op matrasje':q<.85?'Halverwege de nacht bij papa en mama':'Hele nacht op matrasje'):(q<.35?'Halverwege de nacht op matrasje':q<.7?'Halverwege de nacht bij papa en mama':q<.85?'Hele nacht op matrasje':'Hele nacht bij papa en mama')}
+    const fell=night==='Hele nacht bij papa en mama'&&r()<.6?'In bed bij mama':night==='Hele nacht op matrasje'?'Matrasje':(ci===1&&r()<.3*(1-prog)?'In bed bij mama':'Eigen bed');
     const snel=r()<((ci===0?.7:.38)+(rec?.12:0)+(ci===1?.2*prog:0)-(sc<-.4?.25:0));
-    nights[nk(p.id,d)]={childId:p.id,date:d,eigen,snel,kwam,heel,note:''};
+    nights[nk(p.id,d)]={childId:p.id,date:d,fell,night,snel,note:''};
+    {const d1=addDays(d,1);if(d1<=t&&r()<.8){const o=nightOut(nights[nk(p.id,d)]),nx=cks[key(p.id,d1)],w1=wdi(d1);const dread=(ci===1&&w1===0&&r()<.7)||(ci===0&&r()<.12)?(r()<.5?'Ja':'Een beetje'):'Nee';
+      am[ak(p.id,d1)]={childId:p.id,date:d1,sleep:o==='G'?(r()<.75?'Goed':'Gaat wel'):(r()<.5?'Slecht':'Gaat wel'),energy:o==='G'?pick(['Heel veel','Genoeg','Genoeg']):pick(['Weinig','Op','Genoeg','Weinig']),dread,why:dread==='Nee'?[]:[ci===1?'School':pick(['Een toets','Iemand','Sport of club'])],look:pick(['Ja!','Een beetje','Niet echt','Ja!']),lookText:pick(['Gym','Spelen met Sam','Zwemles','Pannenkoeken','']),time:'07:'+String(10+Math.floor(r()*40)),upd:0};
+      if(nx&&nx.sleep)nx.sleep=am[ak(p.id,d1)].sleep;if(dread!=='Nee'&&nx){const s2=score(nx);}}}
     const bh=[];if(ci===1&&(sc<-1&&r()<.6||prevOut!=='G'&&r()<.35))bh.push('Driftbui');if(sc<-1&&r()<.3)bh.push('Huilbui');if(ci===0&&rec&&rec.belong==='Nee, niet echt'&&r()<.6)bh.push('Teruggetrokken');if(ci===1&&prevOut==='B'&&r()<.3)bh.push('Bedplassen');if(ci===1&&w===0&&r()<.4)bh.push('Moeilijk afscheid');
     if(r()<.88)plog[pk(p.id,d)]={childId:p.id,date:d,behav:bh.length?bh:['Geen bijzonderheden'],app:sick||(sc<-1&&r()<.3)?'Minder dan normaal':(r()<.06?'Meer dan normaal':'Normaal'),bed};
     prevOut=nightOut(nights[nk(p.id,d)])}});
   for(let n=41;n>=1;n--){const d=addDays(t,-n),w=wdi(d),xr=cks[key(c2,d)],xs=xr?score(xr):0,nr=cks[key(c1,d)],ns=nr?score(nr):0;
     if(r()<.85){let m=3.7-(xs<-.4?1:0)-(w===0?.5:0)+(r()-.5)*1.4;pci[ok('Mama',d)]={who:'Mama',date:d,mood:Math.max(1,Math.min(5,Math.round(m))),energy:m<2.6?'Weinig':m<3.8?'Gemiddeld':'Veel'}}
     if(r()<.65){let m=3.8-(xs<-.4||ns<-.4?.7:0)+(r()-.5)*1.2;pci[ok('Papa',d)]={who:'Papa',date:d,mood:Math.max(1,Math.min(5,Math.round(m))),energy:m<2.6?'Weinig':m<3.8?'Gemiddeld':'Veel'}}}
-  return{plog,pci,nights,moments:mom,settings:{profiles:ps,pin:null},cks,events:Object.fromEntries(evs.map(e=>[e.id,{good:'',better:'',kidEval:{},...e}]))};
+  return{wx:dwx,am,plog,pci,nights,moments:mom,settings:{profiles:ps,pin:null},cks,events:Object.fromEntries(evs.map(e=>[e.id,{good:'',better:'',kidEval:{},...e}]))};
 }
 
 /* ---------- events ---------- */
@@ -1102,7 +1192,7 @@ const A={
   backup:()=>backup(),csv:()=>csv(),
   restore:()=>$('#importFile').click(),
   wipe:async()=>{if(DEMO){toast('Stop eerst de voorbeeldmodus');return}const r=await modal({title:'Alles verwijderen?',body:'Typ <b>WISSEN</b> om alle HeartKidz-gegevens te verwijderen. Zonder back-up is dit niet terug te halen.',ok:'Verwijderen',cancel:'Annuleren',danger:true,input:{ph:'WISSEN'}});if(!r.ok||(r.value||'').trim().toUpperCase()!=='WISSEN')return;
-    S={settings:defSettings(),cks:{},events:{},moments:{},nights:{},plog:{},pci:{},del:{}};try{localStorage.removeItem(LS)}catch(e){}parentOpen=false;go('home');toast('Alles is verwijderd')},
+    S={settings:defSettings(),cks:{},events:{},moments:{},nights:{},plog:{},pci:{},am:{},wx:{},del:{}};try{localStorage.removeItem(LS)}catch(e){}parentOpen=false;go('home');toast('Alles is verwijderd')},
   demoOn:()=>{DEMO=makeDemo();$('#demoBar').classList.remove('hide');pTab='overview';pKid='all';pPer=30;go('parent')},
   demoOff:()=>{stopDemo();go(screen==='flow'||screen==='done'?'home':screen)},
   evNew:()=>{const ps=D().settings.profiles;evForm={id:null,title:'',cat:'anders',kids:pKid==='all'?ps.map(p=>p.id):[pKid],start:todayKey(),end:'',note:''};renderParent()},
@@ -1122,8 +1212,8 @@ const A={
   ngSave:()=>{const ps=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid);ps.forEach(p=>{const v=vals('nq_'+p.id),note=($('#nn_'+p.id)||{}).value||'',k=nk(p.id,ngDate);
     const bh=vals('pb_'+p.id),ap=vals('pa_'+p.id)[0]||'',bt=vals('pt_'+p.id)[0]||'',kk=pk(p.id,ngDate);
     if(bh.length||ap||bt)D().plog[kk]={childId:p.id,date:ngDate,behav:bh,app:ap,bed:bt,upd:Date.now()};else if(D().plog[kk]){delete D().plog[kk];tomb(kk)}
-    if(!v.length&&!note.trim()){if(D().nights[k]){delete D().nights[k];tomb(k)}return}
-    const n={childId:p.id,date:ngDate,eigen:v.includes('eigen'),snel:v.includes('snel'),kwam:v.includes('kwam'),heel:v.includes('heel'),note:note.trim(),upd:Date.now()};if(n.heel&&!n.kwam&&n.eigen)n.kwam=true;D().nights[k]=n});
+    const fl=vals('nf_'+p.id)[0]||'',nt=vals('nt_'+p.id)[0]||'';if(!v.length&&!fl&&!nt&&!note.trim()){if(D().nights[k]){delete D().nights[k];tomb(k)}return}
+    const n={childId:p.id,date:ngDate,fell:fl,night:nt,snel:v.includes('snel'),note:note.trim(),upd:Date.now()};D().nights[k]=n});
     PWHO.forEach(w=>{const m=+(vals('pm_'+w)[0]||0),e=vals('pe_'+w)[0]||'',kk=ok(w,ngDate);if(m)D().pci[kk]={who:w,date:ngDate,mood:m,energy:e,upd:Date.now()};else if(D().pci[kk]){delete D().pci[kk];tomb(kk)}});
     if(!DEMO)cache();toast('Opgeslagen');renderParent()},
   rPer:b=>{rPer=b.dataset.v==='all'?'all':+b.dataset.v;renderParent()},
@@ -1131,6 +1221,15 @@ const A={
     const doc=`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>HeartKidz rapport ${esc(names)}</title><style>body{font:15px/1.5 system-ui,sans-serif;color:#222;max-width:860px;margin:24px auto;padding:0 16px}h1{font-size:1.7rem;margin:0 0 6px}h2{font-size:1.35rem;margin:28px 0 4px;border-top:2px solid #e2475b;padding-top:12px}h3{font-size:1.05rem;margin:16px 0 4px}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left;vertical-align:top}.n{text-align:right;white-space:nowrap}.small{font-size:.85rem;color:#555}@media print{h2{break-before:auto}}</style></head><body><h1>HeartKidz: overzicht ${esc(names)}</h1>${repBody(from,!!window._rTxt)}</body></html>`;
     offerFile('HeartKidz-rapport-'+t+'.html',doc,'Rapport')},
   repCopy:async()=>{const el=$('#repBox');try{await navigator.clipboard.writeText(el.innerText);toast('Gekopieerd')}catch(e){toast('Kopiëren lukte niet')}},
+  amStart:b=>startAM(b.dataset.id),
+  amPick:b=>{AM[b.dataset.f]=b.dataset.v;const y=window.scrollY;renderAM();window.scrollTo(0,y)},
+  amWhy:b=>{const v=b.dataset.v,i=AM.why.indexOf(v);if(i>=0)AM.why.splice(i,1);else AM.why.push(v);const y=window.scrollY;renderAM();window.scrollTo(0,y)},
+  amPrev:()=>{const t=$('#amTxt');if(t)AM.lookText=t.value;if(AM.st>0){AM.st--;renderAM()}},
+  amNext:()=>{const t=$('#amTxt');if(t)AM.lookText=t.value;if(AM.st<AMS.length-1){AM.st++;renderAM();window.scrollTo(0,0)}else{saveAM();AM.done=true;renderAM();window.scrollTo(0,0)}},
+  locSearch:async()=>{const q=($('#locQ')||{}).value||'';if(q.trim().length<2){toast('Typ een plaatsnaam');return}try{const j=await (await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=nl&format=json&name='+encodeURIComponent(q.trim()))).json();locRes=(j.results||[]).map(x=>({name:x.name+(x.admin1?', '+x.admin1:'')+(x.country?', '+x.country:''),lat:x.latitude,lon:x.longitude}));if(!locRes.length)toast('Geen plaats gevonden');renderParent()}catch(e){toast(window.claude?'Weer ophalen werkt alleen in de geüploade app, niet in deze voorbeeldweergave.':'Geen verbinding met de weerdienst')}},
+  locPick:b=>{const l=locRes[+b.dataset.i];if(!l)return;S.settings.loc=l;S.wxAt=0;locRes=[];saveSettings();toast('Woonplaats gekoppeld');wxFetch(true);renderParent()},
+  locOff:()=>{delete S.settings.loc;saveSettings();renderParent()},
+  wxNow:()=>wxFetch(true),
   hStart:()=>startHelp({}),
   hFromFlow:()=>{startHelp({childId:draft.childId,emo:supEmo(draft)||draft.main,ret:'flow'})},
   hWho:b=>{H.childId=b.dataset.id;H.st='feel';renderHelp();window.scrollTo(0,0)},
