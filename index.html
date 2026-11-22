@@ -626,12 +626,18 @@ const BASE=['emotions','activities','social','best','hard','need','pain','sleep'
 function supEmo(d){const n=(d.emotions||[]).filter(l=>EM[l]&&EM[l].v<=-1);if(!n.length)return null;return n.includes(d.main)?d.main:n.sort((a,b)=>EM[a].v-EM[b].v)[0]}
 function buildFS(){FS=BASE.slice();if(draft&&((D().am||{})[ak(draft.childId,draft.date)]||{}).sleep)FS.splice(FS.indexOf('sleep'),1);if(draft&&supEmo(draft))FS.splice(1,0,'support');const e=draft&&draft.evId&&D().events[draft.evId];if(e)FS.splice(FS.indexOf('tomorrow'),0,'event')}
 let draft=null,step=0;
-function startFlow(id){
-  const t=todayKey(),ex=D().cks[key(id,t)];
+let flowRet='home';
+const draftKey=(c,d)=>'hk_draft_'+c+'_'+d;
+function saveDraft(){if(!draft||DEMO)return;try{localStorage.setItem(draftKey(draft.childId,draft.date),JSON.stringify({d:draft,at:Date.now()}))}catch(e){}}
+function dropDraft(c,d){try{localStorage.removeItem(draftKey(c,d))}catch(e){}}
+function startFlow(id,date,ret){
+  flowRet=ret||'home';
+  const t=date||todayKey(),ex=D().cks[key(id,t)];
   const blank={childId:id,date:t,emotions:[],main:'',activities:[],social:[],belong:'',best:'',hard:'',hardDetail:'',need:[],pain:[],energy:'',sleep:'',morrow:'',dread:[],tomorrow:'',mind:'',worry:''};
   draft=ex?{...blank,...JSON.parse(JSON.stringify(ex))}:blank;
-  const ev=kidEvalEvent(id,t);if(ev){draft.evId=ev.id;draft.evR='';draft.evT=''}
-  buildFS();step=0;go('flow');renderStep();
+  let restored=false;if(!DEMO)try{const dr=JSON.parse(localStorage.getItem(draftKey(id,t)));if(dr&&dr.d&&dr.at>((ex&&ex.upd)||0)){draft={...draft,...dr.d,childId:id,date:t};restored=true}}catch(e){}
+  const ev=!restored&&kidEvalEvent(id,t);if(ev){draft.evId=ev.id;draft.evR='';draft.evT=''}
+  buildFS();step=0;go('flow');renderStep();if(restored)toast('Je gaat verder waar je gebleven was');
 }
 function opt(f,v,e,lab,on,z){return`<button class="opt ${on?'on':''}" ${z?`style="--z:var(--z${z})"`:''} data-act="pick" data-f="${f}" data-v="${esc(v)}" aria-pressed="${on}"><span class="e">${e}</span><span>${esc(lab)}</span></button>`}
 function renderStep(){
@@ -664,7 +670,7 @@ function renderStep(){
     h+=`<div class="field" style="margin-top:18px"><label for="tTom">Waar kijk je morgen naar uit?</label><textarea id="tTom" data-f="tomorrow" style="min-height:80px" maxlength="1200" placeholder="Iets kleins is ook goed">${esc(draft.tomorrow)}</textarea><div class="tools">${micBtn('tTom')}</div></div>`;
     h+=`<div class="zone" style="margin-top:8px">Zit er nog iets in je hoofd?</div><div class="opts">${MIND.map(([e,l])=>opt('mind',l,e,l,draft.mind===l)).join('')}</div>`;
     if(draft.mind&&draft.mind!==MIND[0][1])h+=`<div class="field"><label for="tWor">${young?'Wil je het aan papa of mama vertellen? Dan schrijven jullie het hier op.':'Wil je opschrijven wat er in je hoofd zit? Dan hoef je het vannacht niet vast te houden.'}</label><textarea id="tWor" data-f="worry" style="min-height:80px" maxlength="1200" placeholder="Mag ook leeg blijven">${esc(draft.worry)}</textarea><div class="tools">${micBtn('tWor')}</div></div>`}
-  $('#stepBox').innerHTML=`<div class="kicker">Stap ${step+1} van ${FS.length}</div><h1 class="q">${esc(title)}</h1><p class="hint">${esc(hint)}</p><div class="tools">${speakBtn(title+' '+hint)}</div>${h}`;
+  $('#stepBox').innerHTML=`<div class="kicker">Stap ${step+1} van ${FS.length}${draft.date!==todayKey()?' · '+esc(long(draft.date)):''}</div><h1 class="q">${esc(title)}</h1><p class="hint">${esc(hint)}</p><div class="tools">${speakBtn(title+' '+hint)}</div>${h}`;
   $('#stepActs').innerHTML=`<button class="btn line" data-act="prev" ${step===0?'disabled':''}>Terug</button><button class="btn" data-act="next">${step===FS.length-1?'Dag afsluiten':'Verder'}</button>`;
 }
 function pick(f,v){
@@ -675,7 +681,7 @@ function pick(f,v){
       const EX={need:'Niets bijzonders',pain:'Nee, niets'}[f];if(EX){if(v===EX)a.length=0;else{const j=a.indexOf(EX);if(j>=0)a.splice(j,1)}}
       a.push(v)}
     if(f==='emotions'&&!a.includes(draft.main))draft.main=a[0]||'';}
-  const y=window.scrollY;renderStep();window.scrollTo(0,y);
+  saveDraft();const y=window.scrollY;renderStep();window.scrollTo(0,y);
 }
 function finish(){
   ['best','hardDetail','tomorrow','worry'].forEach(f=>draft[f]=(draft[f]||'').trim());
@@ -683,10 +689,10 @@ function finish(){
   draft.completedAt=new Date().toISOString();
   if(draft.evId){const ev=D().events[draft.evId];if(ev&&draft.evR){ev.kidEval=ev.kidEval||{};ev.kidEval[draft.childId]={r:+draft.evR,t:(draft.evT||'').trim(),date:draft.date};ev.upd=Date.now();saveEvents()}}
   delete draft.evId;delete draft.evR;delete draft.evT;
-  saveRec(draft);
+  saveRec(draft);dropDraft(draft.childId,draft.date);
   const p=prof(draft.childId),z=zone(draft)||'N',e=EM[draft.main];
   go('done');
-  $('#doneBox').innerHTML=`<div style="width:92px;margin:0 auto">${heart(z,ZONES[z].n)}</div><h2 style="font-size:2rem;margin-top:8px">Dankjewel, ${esc(p.name)}!</h2><p class="muted">Jouw weer vandaag: <b>${ZONES[z].n}</b>${e?` · ${e.e} ${esc(e.l)}`:''}. Fijn dat je even hebt stilgestaan bij je dag.</p><div class="breath" id="breath">Klaar?</div><button class="btn alt" data-act="breathe" id="bBtn">Samen 3× rustig ademen</button><p class="muted small" style="margin-top:18px">Slaap lekker straks. Morgen is een nieuwe dag.</p><button class="btn full" data-act="go" data-s="home" style="margin-top:8px">Klaar</button>`;
+  $('#doneBox').innerHTML=`<div style="width:92px;margin:0 auto">${heart(z,ZONES[z].n)}</div><h2 style="font-size:2rem;margin-top:8px">Dankjewel, ${esc(p.name)}!</h2><p class="muted">Jouw weer vandaag: <b>${ZONES[z].n}</b>${e?` · ${e.e} ${esc(e.l)}`:''}. Fijn dat je even hebt stilgestaan bij je dag.</p><div class="breath" id="breath">Klaar?</div><button class="btn alt" data-act="breathe" id="bBtn">Samen 3× rustig ademen</button><p class="muted small" style="margin-top:18px">Slaap lekker straks. Morgen is een nieuwe dag.</p><button class="btn full" data-act="go" data-s="${flowRet}" style="margin-top:8px">Klaar</button>`;
 }
 let breathT=null;
 function breathe(){const b=$('#breath');if(!b)return;clearInterval(breathT);b.classList.remove('go');void b.offsetWidth;b.classList.add('go');let n=0;const lines=['Adem in…','Adem uit…'];b.textContent=lines[0];
@@ -694,16 +700,17 @@ function breathe(){const b=$('#breath');if(!b)return;clearInterval(breathT);b.cl
 
 /* ---------- morning check-in ---------- */
 let AM=null;const AMS=['sleep','energy','dread','look'];
-function startAM(id){const t=todayKey(),ex=(D().am||{})[ak(id,t)];AM={childId:id,date:t,sleep:'',energy:'',dread:'',why:[],look:'',lookText:'',...(ex?JSON.parse(JSON.stringify(ex)):{}),st:0,done:false};go('am');renderAM()}
+let amRet='home';
+function startAM(id,date,ret){amRet=ret||'home';const t=date||todayKey(),ex=(D().am||{})[ak(id,t)];AM={childId:id,date:t,sleep:'',energy:'',dread:'',why:[],look:'',lookText:'',...(ex?JSON.parse(JSON.stringify(ex)):{}),st:0,done:false};go('am');renderAM()}
 function optA(f,v,e,l,on){return`<button class="opt ${on?'on':''}" data-act="amPick" data-f="${f}" data-v="${esc(v)}" aria-pressed="${on}"><span class="e">${e}</span><span>${esc(l)}</span></button>`}
 function renderAM(){const p=prof(AM.childId),young=p.age==='5-7',k=AMS[AM.st];let title='',hint='',h='';
-  if(AM.done){const dr=AM.dread&&AM.dread!=='Nee';$('#amBox').innerHTML=`<div class="card done"><div style="font-size:4rem">☀️</div><h2 style="font-size:2rem">Fijne dag, ${esc(p.name)}!</h2><p class="muted">${dr?'Wat goed dat je vertelt waar je tegenop ziet. Vertel het gerust even aan papa of mama, dan denken ze met je mee.':AM.look==='Ja!'?'Geniet ervan! Vanavond hoor ik graag hoe het was.':'Een nieuwe dag om te ontdekken.'}</p><button class="btn full" data-act="go" data-s="home">Klaar</button></div>`;return}
+  if(AM.done){const dr=AM.dread&&AM.dread!=='Nee';$('#amBox').innerHTML=`<div class="card done"><div style="font-size:4rem">☀️</div><h2 style="font-size:2rem">Fijne dag, ${esc(p.name)}!</h2><p class="muted">${dr?'Wat goed dat je vertelt waar je tegenop ziet. Vertel het gerust even aan papa of mama, dan denken ze met je mee.':AM.look==='Ja!'?'Geniet ervan! Vanavond hoor ik graag hoe het was.':'Een nieuwe dag om te ontdekken.'}</p><button class="btn full" data-act="go" data-s="${amRet}">Klaar</button></div>`;return}
   if(k==='sleep'){title='Hoe heb je geslapen?';h=`<div class="opts">${SLEEP.map(([e,l])=>optA('sleep',l,e,l,AM.sleep===l)).join('')}</div>`}
   if(k==='energy'){title='Hoe is je energie?';hint=young?'Hoe vol is jouw batterij?':'Hoe vol is je batterij vanochtend?';h=`<div class="opts">${ENERGY.map(([e,l])=>optA('energy',l,e,l,AM.energy===l)).join('')}</div>`}
   if(k==='dread'){title='Zie je ergens tegenop vandaag?';h=`<div class="opts">${AMD.map(([e,l])=>optA('dread',l,e,l,AM.dread===l)).join('')}</div>`;if(AM.dread&&AM.dread!=='Nee')h+=`<div class="zone" style="margin-top:18px">Waar zie je tegenop?</div><div class="opts">${DREAD.map(([e,l])=>`<button class="opt ${AM.why.includes(l)?'on':''}" data-act="amWhy" data-v="${esc(l)}"><span class="e">${e}</span><span>${esc(l)}</span></button>`).join('')}</div>`}
   if(k==='look'){title='Kijk je ergens naar uit vandaag?';h=`<div class="opts">${AML.map(([e,l])=>optA('look',l,e,l,AM.look===l)).join('')}</div>`;if(AM.look&&AM.look!=='Niet echt')h+=`<div class="field" style="margin-top:14px"><label for="amTxt">Waarnaar?</label><input type="text" id="amTxt" maxlength="120" value="${esc(AM.lookText)}" placeholder="Mag ook leeg blijven"></div>`}
-  $('#amBox').innerHTML=`<div class="row sp"><button class="btn line sm" data-act="go" data-s="home">Stoppen</button><b>${p.av} ${esc(p.name)}</b></div><div class="bar"><i style="width:${(AM.st+1)/AMS.length*100}%;background:var(--zY)"></i></div><div class="kicker">Ochtend · ${AM.st+1} van ${AMS.length}</div><h1 class="q">${esc(title)}</h1>${hint?`<p class="hint">${esc(hint)}</p>`:''}<div class="tools">${speakBtn(title+' '+hint)}</div>${h}<div class="acts"><button class="btn line" data-act="amPrev" ${AM.st===0?'disabled':''}>Terug</button><button class="btn" data-act="amNext">${AM.st===AMS.length-1?'Klaar':'Verder'}</button></div>`}
-function saveAM(){const t=$('#amTxt');if(t)AM.lookText=t.value.trim();const r={childId:AM.childId,date:AM.date,sleep:AM.sleep,energy:AM.energy,dread:AM.dread,why:AM.dread&&AM.dread!=='Nee'?AM.why:[],look:AM.look,lookText:AM.look&&AM.look!=='Niet echt'?AM.lookText:'',time:hhmm(),upd:Date.now()};D().am=D().am||{};D().am[ak(r.childId,r.date)]=r;if(!DEMO)cache()}
+  $('#amBox').innerHTML=`<div class="row sp"><button class="btn line sm" data-act="go" data-s="${amRet}">Stoppen</button><b>${p.av} ${esc(p.name)}</b></div><div class="bar"><i style="width:${(AM.st+1)/AMS.length*100}%;background:var(--zY)"></i></div><div class="kicker">Ochtend · ${AM.st+1} van ${AMS.length}${AM.date!==todayKey()?' · '+esc(long(AM.date)):''}</div><h1 class="q">${esc(title)}</h1>${hint?`<p class="hint">${esc(hint)}</p>`:''}<div class="tools">${speakBtn(title+' '+hint)}</div>${h}<div class="acts"><button class="btn line" data-act="amPrev" ${AM.st===0?'disabled':''}>Terug</button><button class="btn" data-act="amNext">${AM.st===AMS.length-1?'Klaar':'Verder'}</button></div>`}
+function saveAM(){const t=$('#amTxt');if(t)AM.lookText=t.value.trim();const old=(D().am||{})[ak(AM.childId,AM.date)];const r={childId:AM.childId,date:AM.date,sleep:AM.sleep,energy:AM.energy,dread:AM.dread,why:AM.dread&&AM.dread!=='Nee'?AM.why:[],look:AM.look,lookText:AM.look&&AM.look!=='Niet echt'?AM.lookText:'',time:(old&&old.time)||hhmm(),upd:Date.now()};D().am=D().am||{};D().am[ak(r.childId,r.date)]=r;if(!DEMO)cache()}
 function amBanner(){const t=todayKey(),xs=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid).map(p=>[p,(D().am||{})[ak(p.id,t)]]).filter(x=>x[1]);if(!xs.length)return'';
   return`<div class="card" style="background:color-mix(in oklab,var(--zY) 12%,var(--paper))"><h3>Vanochtend</h3>${xs.map(([p,a])=>`<p style="margin:6px 0">${p.av} <b>${esc(p.name)}</b>: ${esc((a.sleep||'?').toLowerCase())} geslapen · energie ${esc((a.energy||'?').toLowerCase())}${a.dread&&a.dread!=='Nee'?` · <b>ziet ${a.dread==='Ja'?'':'een beetje '}op tegen${a.why&&a.why.length?' '+esc(a.why.join(', ').toLowerCase()):' iets'}</b>`:''}${a.look&&a.look!=='Niet echt'?' · kijkt uit naar '+(a.lookText?esc(a.lookText):'iets'):''}</p>`).join('')}</div>`}
 
@@ -908,15 +915,17 @@ function momForm(){const ps=D().settings.profiles,neg=EMO.filter(x=>x.z==='B'||x
   <div class="field"><label>Wat hielp?</label><div class="chips">${HELPS.map(x=>chk('checkbox','nfH',x,esc(x),false)).join('')}</div></div>
   <div class="acts"><button class="btn alt" data-act="mCancel">Annuleren</button><button class="btn" data-act="mSave">Opslaan</button></div></div>`.replace('type="date" id="nfT"','type="time" id="nfT"')}
 let ngDate=null,rPer=56;
+function saveLog(){if($('#ngD'))A.ngSaveOld()}
+function logOk(){const el=$('#logOk');if(el){el.textContent='✓ Automatisch opgeslagen';el.style.opacity=1;clearTimeout(window._lo);window._lo=setTimeout(()=>{el.style.opacity=.55},1500)}}
 function renderNights(){
   if(!ngDate)ngDate=nightDefault();
   const t=todayKey(),ps=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid);
   const days=[];for(let i=window.innerWidth<600?13:20;i>=0;i--)days.push(addDays(t,-i));
   let h=`<div class="ctrl">${kidChips()}</div><div class="card"><h3>Ouderlog</h3><p class="muted small" style="margin-top:0">Een minuutje per dag: de dag, de nacht erna en hoe het met jullie gaat. De kinderen zien dit niet.</p>
    <div class="row" style="flex-wrap:nowrap"><button class="btn alt sm" data-act="ngStep" data-v="-1" aria-label="Nacht ervoor">‹</button><input type="date" id="ngD" value="${ngDate}" max="${t}" style="flex:1"><button class="btn alt sm" data-act="ngStep" data-v="1" aria-label="Nacht erna" ${ngDate>=t?'disabled':''}>›</button></div>
-   <p style="margin:8px 0 0;font-weight:800">${esc(cap(long(ngDate)))} en de nacht erna</p></div>`;
+   <p style="margin:8px 0 0;font-weight:800">${esc(cap(long(ngDate)))} en de nacht erna</p><p class="muted small" id="logOk" style="margin:4px 0 0;opacity:.55;transition:opacity .3s">Alles wat je aantikt wordt meteen bewaard.</p></div>`;
   h+=`<div class="panels ${ps.length>1?'two':''}">`+ps.map((p,i)=>{const n=D().nights[nk(p.id,ngDate)]||{},r=D().cks[key(p.id,ngDate)],z=r&&zone(r);
-    return`<div class="panel" style="--kc:${kcOf(p.id)}"><h3>${p.av} ${esc(p.name)}</h3><p class="muted small" style="margin:4px 0 10px">Check-out die avond: ${r?`<b>${ZONES[z||'N'].n}</b>${score(r)!==null?' ('+fmt(score(r))+')':''}${r.main?' · '+esc(r.main):''}`:'niet gedaan'}</p>
+    return`<div class="panel" style="--kc:${kcOf(p.id)}"><h3>${p.av} ${esc(p.name)}</h3><p class="muted small" style="margin:4px 0 10px">Check-out die avond: ${r?`<b>${ZONES[z||'N'].n}</b>${score(r)!==null?' ('+fmt(score(r))+')':''}${r.main?' · '+esc(r.main):''}`:'niet gedaan'}</p><div class="row" style="margin:-2px 0 10px"><button class="btn alt sm" data-act="startPast" data-id="${p.id}" data-d="${ngDate}">🌙 Avond ${r?'aanvullen':'invullen'}</button><button class="btn alt sm" data-act="amPast" data-id="${p.id}" data-d="${ngDate}">☀️ Ochtend ${(D().am||{})[ak(p.id,ngDate)]?'aanvullen':'invullen'}</button></div>
     ${(()=>{const x=(D().plog||{})[pk(p.id,ngDate)]||{};return`<div class="zone">Gedrag vandaag</div><div class="chips">${BEHAV.map(b=>chk('checkbox','pb_'+p.id,b,b,(x.behav||[]).includes(b))).join('')}</div><div class="zone">Eetlust</div><div class="chips">${APPET.map(b=>chk('radio','pa_'+p.id,b,b,x.app===b)).join('')}</div><div class="zone">Bedtijd</div><div class="chips">${BEDT.map(b=>chk('radio','pt_'+p.id,b,b,x.bed===b)).join('')}</div>`})()}
     <div class="zone">Waar in slaap gevallen?</div><div class="chips">${FELL.map(([e,l])=>chk('radio','nf_'+p.id,l,e+' '+l,fellOf(n)===l)).join('')}</div>
     <div class="zone">Hoe ging de nacht?</div><div class="chips">${NIGHT.map(([c,l])=>chk('radio','nt_'+p.id,l,l,(n.night||(Object.keys(n).length?NOUT[nightOut(n)]:''))===l)).join('')}</div>
@@ -1020,7 +1029,7 @@ function renderEvents(){
 function renderDays(){
   const rs=Object.entries(D().cks).filter(([k,r])=>pKid==='all'||r.childId===pKid).sort((a,b)=>byDate(b[1],a[1]));
   $('#pBody').innerHTML=`<div class="ctrl">${kidChips()}</div>`+(rs.length?rs.slice(0,120).map(([k,r])=>{const p=prof(r.childId)||{name:'Kind',av:'🌈'},z=zone(r)||'N';
-    return`<details class="day"><summary>${heart(z,ZONES[z].n)}<div style="flex:1"><b>${p.av} ${esc(p.name)} · ${esc(long(r.date))}</b><div class="muted small">${esc((r.emotions||[]).join(' · ')||'Geen gevoel gekozen')}${r.parentNote?' · notitie':''}</div></div></summary><div class="in">${dayDetail(r,true)}<div class="field"><label for="n_${k}">Notitie van ouder (alleen hier zichtbaar)</label><textarea id="n_${k}" style="min-height:70px" placeholder="Bijv. samen over gepraat, tip van juf…">${esc(r.parentNote||'')}</textarea></div><div class="row"><button class="btn alt sm" data-act="saveNote" data-k="${k}">Notitie bewaren</button><button class="btn danger sm" data-act="delRec" data-k="${k}">Dag verwijderen</button></div></div></details>`}).join(''):'<div class="card muted">Nog geen antwoorden opgeslagen.</div>');
+    return`<details class="day"><summary>${heart(z,ZONES[z].n)}<div style="flex:1"><b>${p.av} ${esc(p.name)} · ${esc(long(r.date))}</b><div class="muted small">${esc((r.emotions||[]).join(' · ')||'Geen gevoel gekozen')}${r.parentNote?' · notitie':''}</div></div></summary><div class="in">${dayDetail(r,true)}<div class="field"><label for="n_${k}">Notitie van ouder (alleen hier zichtbaar)</label><textarea id="n_${k}" style="min-height:70px" placeholder="Bijv. samen over gepraat, tip van juf…">${esc(r.parentNote||'')}</textarea></div><div class="row"><button class="btn alt sm" data-act="saveNote" data-k="${k}">Notitie bewaren</button><button class="btn alt sm" data-act="startPast" data-id="${r.childId}" data-d="${r.date}">Check-out aanvullen</button><button class="btn danger sm" data-act="delRec" data-k="${k}">Dag verwijderen</button></div></div></details>`}).join(''):'<div class="card muted">Nog geen antwoorden opgeslagen.</div>');
 }
 let locRes=[],wxBusy=false;
 async function wxFetch(force){const L=S.settings.loc;if(!L||DEMO||wxBusy)return;if(!force&&S.wxAt&&Date.now()-S.wxAt<6*3600e3)return;wxBusy=true;
@@ -1164,7 +1173,7 @@ function makeDemo(){
 const A={
   go:b=>go(b.dataset.s),goParent:()=>go('parent'),
   start:b=>startFlow(b.dataset.id),
-  stop:()=>{draft=null;go('home')},
+  stop:()=>{if(draft){saveDraft();toast('Bewaard. Je kunt later verder.')}draft=null;go(flowRet)},
   pick:b=>pick(b.dataset.f,b.dataset.v),
   main:b=>{draft.main=b.dataset.v;const y=window.scrollY;renderStep();window.scrollTo(0,y)},
   next:()=>{if(FS[step]==='emotions'){const cur=FS[step];buildFS();step=FS.indexOf(cur)}if(step<FS.length-1){step++;renderStep();window.scrollTo(0,0)}else finish()},
@@ -1207,23 +1216,26 @@ const A={
   evDel:async b=>{const r=await modal({title:'Gebeurtenis verwijderen?',body:'De check-outs van die dagen blijven bewaard.',ok:'Verwijderen',cancel:'Annuleren',danger:true});if(!r.ok)return;delete D().events[b.dataset.id];tomb('ev:'+b.dataset.id);saveEvents();renderParent()},
   evEval:b=>{const e=D().events[b.dataset.id];if(!e)return;e.good=$('#g_'+b.dataset.id).value.trim();e.better=$('#b_'+b.dataset.id).value.trim();e.upd=Date.now();saveEvents();toast('Evaluatie bewaard')},
   goNights:()=>{pTab='nights';renderParent()},
-  ngStep:b=>{ngDate=addDays(ngDate||nightDefault(),+b.dataset.v);if(ngDate>todayKey())ngDate=todayKey();renderParent()},
-  ngPick:b=>{ngDate=b.dataset.d;renderParent();window.scrollTo(0,0)},
-  ngSave:()=>{const ps=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid);ps.forEach(p=>{const v=vals('nq_'+p.id),note=($('#nn_'+p.id)||{}).value||'',k=nk(p.id,ngDate);
+  ngStep:b=>{saveLog();ngDate=addDays(ngDate||nightDefault(),+b.dataset.v);if(ngDate>todayKey())ngDate=todayKey();renderParent()},
+  ngPick:b=>{saveLog();ngDate=b.dataset.d;renderParent();window.scrollTo(0,0)},
+  ngSave:()=>{saveLog();toast('Opgeslagen');renderParent()},
+  startPast:b=>startFlow(b.dataset.id,b.dataset.d,'parent'),
+  amPast:b=>startAM(b.dataset.id,b.dataset.d,'parent'),
+  ngSaveOld:()=>{const ps=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid);ps.forEach(p=>{const v=vals('nq_'+p.id),note=($('#nn_'+p.id)||{}).value||'',k=nk(p.id,ngDate);
     const bh=vals('pb_'+p.id),ap=vals('pa_'+p.id)[0]||'',bt=vals('pt_'+p.id)[0]||'',kk=pk(p.id,ngDate);
     if(bh.length||ap||bt)D().plog[kk]={childId:p.id,date:ngDate,behav:bh,app:ap,bed:bt,upd:Date.now()};else if(D().plog[kk]){delete D().plog[kk];tomb(kk)}
     const fl=vals('nf_'+p.id)[0]||'',nt=vals('nt_'+p.id)[0]||'';if(!v.length&&!fl&&!nt&&!note.trim()){if(D().nights[k]){delete D().nights[k];tomb(k)}return}
     const n={childId:p.id,date:ngDate,fell:fl,night:nt,snel:v.includes('snel'),note:note.trim(),upd:Date.now()};D().nights[k]=n});
     PWHO.forEach(w=>{const m=+(vals('pm_'+w)[0]||0),e=vals('pe_'+w)[0]||'',kk=ok(w,ngDate);if(m)D().pci[kk]={who:w,date:ngDate,mood:m,energy:e,upd:Date.now()};else if(D().pci[kk]){delete D().pci[kk];tomb(kk)}});
-    if(!DEMO)cache();toast('Opgeslagen');renderParent()},
+    if(!DEMO)cache()},
   rPer:b=>{rPer=b.dataset.v==='all'?'all':+b.dataset.v;renderParent()},
   repDl:()=>{const t=todayKey(),from=rPer==='all'?null:addDays(t,-(rPer-1));const names=D().settings.profiles.filter(p=>pKid==='all'||p.id===pKid).map(p=>p.name).join(' en ');
     const doc=`<!DOCTYPE html><html lang="nl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>HeartKidz rapport ${esc(names)}</title><style>body{font:15px/1.5 system-ui,sans-serif;color:#222;max-width:860px;margin:24px auto;padding:0 16px}h1{font-size:1.7rem;margin:0 0 6px}h2{font-size:1.35rem;margin:28px 0 4px;border-top:2px solid #e2475b;padding-top:12px}h3{font-size:1.05rem;margin:16px 0 4px}table{border-collapse:collapse;width:100%;font-size:.88rem}th,td{border-bottom:1px solid #ddd;padding:5px 6px;text-align:left;vertical-align:top}.n{text-align:right;white-space:nowrap}.small{font-size:.85rem;color:#555}@media print{h2{break-before:auto}}</style></head><body><h1>HeartKidz: overzicht ${esc(names)}</h1>${repBody(from,!!window._rTxt)}</body></html>`;
     offerFile('HeartKidz-rapport-'+t+'.html',doc,'Rapport')},
   repCopy:async()=>{const el=$('#repBox');try{await navigator.clipboard.writeText(el.innerText);toast('Gekopieerd')}catch(e){toast('Kopiëren lukte niet')}},
   amStart:b=>startAM(b.dataset.id),
-  amPick:b=>{AM[b.dataset.f]=b.dataset.v;const y=window.scrollY;renderAM();window.scrollTo(0,y)},
-  amWhy:b=>{const v=b.dataset.v,i=AM.why.indexOf(v);if(i>=0)AM.why.splice(i,1);else AM.why.push(v);const y=window.scrollY;renderAM();window.scrollTo(0,y)},
+  amPick:b=>{AM[b.dataset.f]=b.dataset.v;saveAM();const y=window.scrollY;renderAM();window.scrollTo(0,y)},
+  amWhy:b=>{const v=b.dataset.v,i=AM.why.indexOf(v);if(i>=0)AM.why.splice(i,1);else AM.why.push(v);saveAM();const y=window.scrollY;renderAM();window.scrollTo(0,y)},
   amPrev:()=>{const t=$('#amTxt');if(t)AM.lookText=t.value;if(AM.st>0){AM.st--;renderAM()}},
   amNext:()=>{const t=$('#amTxt');if(t)AM.lookText=t.value;if(AM.st<AMS.length-1){AM.st++;renderAM();window.scrollTo(0,0)}else{saveAM();AM.done=true;renderAM();window.scrollTo(0,0)}},
   locSearch:async()=>{const q=($('#locQ')||{}).value||'';if(q.trim().length<2){toast('Typ een plaatsnaam');return}try{const j=await (await fetch('https://geocoding-api.open-meteo.com/v1/search?count=5&language=nl&format=json&name='+encodeURIComponent(q.trim()))).json();locRes=(j.results||[]).map(x=>({name:x.name+(x.admin1?', '+x.admin1:'')+(x.country?', '+x.country:''),lat:x.latitude,lon:x.longitude}));if(!locRes.length)toast('Geen plaats gevonden');renderParent()}catch(e){toast(window.claude?'Weer ophalen werkt alleen in de geüploade app, niet in deze voorbeeldweergave.':'Geen verbinding met de weerdienst')}},
@@ -1260,8 +1272,8 @@ const A={
 function stopDemo(){DEMO=null;parentOpen=false;mineKid=null;$('#demoBar').classList.add('hide')}
 function d_stop(){if(dict)dict.stop().catch(()=>{})}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(!b||b.disabled)return;const f=A[b.dataset.act];if(f)f(b)});
-document.addEventListener('input',e=>{const ds=e.target.dataset||{};if(ds.f&&draft)draft[ds.f]=e.target.value;if(ds.hf&&H)H[ds.hf]=e.target.value});
-document.addEventListener('change',e=>{if(e.target.id==='ngD'&&e.target.value){ngDate=e.target.value>todayKey()?todayKey():e.target.value;renderParent()}if(e.target.id==='rTxt'){window._rTxt=e.target.checked;renderParent()}if(e.target.id==='rPar'){window._rPar=e.target.checked;renderParent()}});
+document.addEventListener('input',e=>{const ds=e.target.dataset||{};if(ds.f&&draft){draft[ds.f]=e.target.value;clearTimeout(window._dt);window._dt=setTimeout(saveDraft,500)}if(screen==='parent'&&pTab==='nights'&&e.target.id&&e.target.id.startsWith('nn_')){clearTimeout(window._lt);window._lt=setTimeout(()=>{saveLog();logOk()},700)}if(ds.hf&&H)H[ds.hf]=e.target.value});
+document.addEventListener('change',e=>{if(screen==='parent'&&pTab==='nights'&&e.target.name&&e.target.closest('#pBody')){saveLog();logOk()}if(e.target.id==='ngD'&&e.target.value){saveLog();ngDate=e.target.value>todayKey()?todayKey():e.target.value;renderParent()}if(e.target.id==='rTxt'){window._rTxt=e.target.checked;renderParent()}if(e.target.id==='rPar'){window._rPar=e.target.checked;renderParent()}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.id==='pinIn')A.unlock();if(e.key==='Enter'&&e.target.id==='mInput')closeModal(true);if(e.key==='Escape'&&modalRes)closeModal(false)});
 $('#importFile').addEventListener('change',async ev=>{const files=[...ev.target.files];ev.target.value='';if(!files.length)return;
   const read=f=>new Promise(res=>{const rd=new FileReader();rd.onload=()=>{try{res(convert(JSON.parse(rd.result)))}catch(e){res(null)}};rd.onerror=()=>res(null);rd.readAsText(f)});
